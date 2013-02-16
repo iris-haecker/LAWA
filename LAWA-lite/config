@@ -1,0 +1,73 @@
+TARGET = $(shell uname)
+COMPILER = gcc
+BLASLAPACK = platform
+
+ifeq ($(TARGET),Darwin)
+  CXXDYLIB  = -dynamiclib
+  DYLIB_EXT = dylib
+  ifeq ($(COMPILER),gcc)
+    CC  = gcc
+    CXX = g++
+  endif
+  ifeq ($(COMPILER),icc)
+    CC  = icc
+    CXX = icpc
+  endif
+  ifeq ($(COMPILER),clang)
+    CC  = clang
+    CXX = clang++
+  endif
+  ifeq ($(BLASLAPACK),platform)
+    CPPFLAGS += -DWITH_VECLIB
+    LDFLAGS  += -framework Accelerate
+  endif
+  ifeq ($(COMPILER),clang)
+    CC  = clang
+    CXX = clang++
+    ifeq ($(BLASLAPACK),platform)
+      CPPFLAGS += -DWITH_VECLIB
+      LDFLAGS  += -framework Accelerate
+    endif
+  endif
+endif
+
+ifeq ($(TARGET),Linux)
+  CXXDYLIB  = -shared
+  DYLIB_EXT = so
+  ifeq ($(COMPILER),gcc)
+    CC  = gcc
+    CXX = g++
+    ifeq ($(BLASLAPACK),platform)
+      CPPFLAGS += -DWITH_ATLAS -DHAVE_CBLAS -I/usr/include
+      LIBS     += -llapack -lblas -lmpfr -lgmpxx -lgmp
+      LDFLAGS  += -L/usr/lib $(LIBS)
+    endif
+  endif
+endif
+
+
+# compilation modes ------------------------------------------------------------
+
+# --- debug mode -----------------------
+DEBUGLAWA += -DCHECK_INTERVAL_CONSTRUCTION
+DEBUGMODE = -g -DDEBUG -D_GLIBCXX_DEBUG_PEDANTIC=1 $(DEBUGLAWA) \
+            -O2 -Wfatal-errors -pedantic -Wextra \
+            -fPIC
+
+# --- release mode ----------------------
+RELEASEMODE = -O3 -DNDEBUG
+
+# --- profiling mode --------------------
+PROFILEMODE = -p -g -DNDEBUG
+
+# --- select compilation-mode here by commenting / uncommenting
+CXXFLAGS += $(DEBUGMODE)
+#CXXFLAGS += $(RELEASEMODE)
+#CXXFLAGS += $(PROFILEMODE)
+
+CPPFLAGS += -D_GLIBCXX_PERMIT_BACKWARD_HASH
+CPPFLAGS += -I$(FLENS_HOME) -I$(LAWA_HOME)
+
+ifdef BOOST_HOME
+  CPPFLAGS += -I$(BOOST_HOME)
+endif

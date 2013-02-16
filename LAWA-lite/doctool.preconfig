@@ -1,0 +1,6 @@
+export DOCTOOL=${HOME}/Applications/DocTool
+export DOC_PROJECT=LAWA-lite
+
+export AUTHOR="Alexander Stippler"
+export AUTHOR_WEBSITE="http://lawa.sf.net"
+export YEAR=`date +%Y`

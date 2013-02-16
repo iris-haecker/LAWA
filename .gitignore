@@ -1,0 +1,16 @@
+*.html
+*.doc
+*.o
+*.a
+*.dylib
+*.tmproj
+*.txt
+*.css
+*.out
+.*
+*.pdf
+*.plist
+*.tex
+*.dat
+*.png
+*.gps
