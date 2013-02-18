@@ -1,5 +1,5 @@
-#ifndef IRIS_MYGROW_H
-#define IRIS_MYGROW_H 1
+#ifndef IRIS_MYSOLVE_H
+#define IRIS_MYSOLVE_H 1
 
 #include <iris/mybasis.h>
 
@@ -22,4 +22,4 @@ MYGROW(const DenseVector<VW> &w, T nu_bar, T &nu, DenseVector<VLAMBDA> &Lambda, 
 
 } // namespace lawa
 
-#endif // IRIS_MYGROW_H
+#endif // IRIS_MYSOLVE_H
