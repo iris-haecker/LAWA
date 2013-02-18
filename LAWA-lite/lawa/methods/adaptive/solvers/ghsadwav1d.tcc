@@ -106,7 +106,7 @@ GHS_ADWAV1D<T,Basis,APPLY1D,RHS>::GROW(const Coefficients<Lexicographical,T,Inde
     if (w.size() > 0) {
         Lambda = supp(w);
         for (const_coeff_it it=w.begin(); it!=w.end(); ++it) {
-            P_Lambda_r_norm_square += std::pow(r[(*it).first],2.);
+            P_Lambda_r_norm_square += std::pow(r[(*it).first],2);
         }
     }
 
