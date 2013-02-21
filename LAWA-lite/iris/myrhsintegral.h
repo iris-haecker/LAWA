@@ -17,7 +17,7 @@ struct MyRhsIntegral
     operator()(int j, int k, int deriv) const;
 
     T
-    operator()(int absoluteIndex, int deriv) const;
+    operator()(int absoluteIndex, int deriv = 0) const;
     
     MyBasis<T>      V;
     Function<T>     f;

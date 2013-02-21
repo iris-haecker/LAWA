@@ -5,10 +5,6 @@
 
 namespace lawa {
 
-using namespace lawa;
-using namespace std;
-
-
 template <typename T>
 struct MyOperator
     : public GeneralMatrix<MyOperator<T> >
@@ -17,7 +13,7 @@ struct MyOperator
     typedef T                                           ElementType;
     typedef int                                         IndexType;
 
-    MyOperator(int d, int d_, int _jMax=8);
+    MyOperator(int d, int d_, int _jMax);
 
     T
     operator()(int row, int col) const;
@@ -69,6 +65,10 @@ struct MyOperator
 
     void
     densify(RealGeMatrix &MA, int jMax = -1, bool brute = false) const;
+
+    template <typename CRS>
+        void
+        restriction(const IndexSet<int> &indices, SparseGeMatrix<CRS> &A) const;
 
     MyBasis<double>  U, V;
     int              j0, j1;

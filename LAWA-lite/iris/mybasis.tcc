@@ -1,5 +1,5 @@
-#ifndef VALIDATE_MYBASIS_TCC
-#define VALIDATE_MYBASIS_TCC 1
+#ifndef IRIS_MYBASIS_TCC
+#define IRIS_MYBASIS_TCC 1
 
 namespace lawa {
 
@@ -209,4 +209,4 @@ MyBasis<T>::d() const
 
 } // namespace lawa
 
-#endif // VALIDATE_MYBASIS_TCC
+#endif // IRIS_MYBASIS_TCC

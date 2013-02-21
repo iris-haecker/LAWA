@@ -7,13 +7,9 @@
 
 namespace lawa {
 
-using namespace lawa;
-using namespace std;
-
-
-template <typename Operator>
+template <typename Operator, typename Precond>
 struct MyApply
-    : public GeneralMatrix<MyApply<Operator> >
+    : public GeneralMatrix<MyApply<Operator, Precond> >
 {
     typedef flens::DenseVector<Array<double> >               RealDenseVector;
     typedef flens::GeMatrix<FullStorage<double, ColMajor> >  RealGeMatrix;
@@ -23,27 +19,19 @@ struct MyApply
     typedef RealDenseVector::IndexType                       IndexType;
 
 
-    MyApply(const Operator &A, double eps, double tol);
+    MyApply(const Operator &A, const Precond &P, double eps);
 
     void
-    operator()(Transpose              trans,
-               const double           alpha,
-               const RealDenseVector  &v,
-               int                    &N,
-               const double           beta,
-               RealDenseVector        &w)  const;
-
-    void
-    densify(int jMax, RealGeMatrix &MA) const;
-
-    void
-    precond(int jMax, RealDenseVector &MP) const;
+    operator()(Transpose               trans,
+               const double            alpha,
+               const RealDenseVector   &v,
+               const double            beta,
+               RealDenseVector         &w)  const;
 
     int
-    cachePartialSort(const RealDenseVector  &v, double eps) const;
-
-    int
-    computeK(double eps, const RealDenseVector  &v, int N) const;
+    computeK(double                    eps,
+             const RealDenseVector     &v,
+             const IntegerDenseVector  &vSorted) const;
 
     int
     numRows() const;
@@ -52,8 +40,8 @@ struct MyApply
     numCols() const;
 
     const Operator                          &A;
-    double                                  eps, tol;
-    mutable IntegerDenseVector              vSorted;
+    const Precond                           &P;
+    double                                  eps;
 };
 
 } // namespace lawa
@@ -61,10 +49,10 @@ struct MyApply
 
 namespace flens {
 
-template <typename Operator, typename VX, typename VY>
+template <typename Operator, typename Precond, typename VX, typename VY>
     void
     mv(Transpose transA, double alpha,
-       const MyApply<Operator> &A, const DenseVector<VX> &x,
+       const MyApply<Operator, Precond> &A, const DenseVector<VX> &x,
        double beta,
        DenseVector<VY> &y);
 

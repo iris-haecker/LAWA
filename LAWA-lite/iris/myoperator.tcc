@@ -30,7 +30,7 @@ MyOperator<T>::operator()(int row, int col) const
 
     //return -myIntegral(row, 0, col, 1) + myIntegral(row, 0, col, 0);
     //return -myIntegral(row, 1, col, 1) + myIntegral(row, 0, col, 0);
-    return -myIntegral(row, 1, col, 1);
+    return myIntegral(row, 1, col, 1);
     //return myIntegral(row, 0, col, 0);
 }
 
@@ -178,6 +178,31 @@ MyOperator<T>::densify(RealGeMatrix &MA, int jMax, bool brute) const
         }
     }
     
+}
+
+template <typename T>
+template <typename CRS>
+void
+MyOperator<T>::restriction(const IndexSet<int>  &indices,
+                           SparseGeMatrix<CRS>  &A) const
+{
+    typedef IndexSet<int>::const_iterator  iterator;
+
+    const int N = indices.size();
+    A.resize(N, N, 2*(U.d()+V.d()));
+
+    int r=1, c;
+    for (iterator row=indices.begin(); row!=indices.end(); ++row, ++r) {
+        c = 1;
+        for (iterator col=indices.begin(); col!=indices.end(); ++col, ++c) {
+            std::cerr << "A(" << r << ", " << c
+                      << ") = operator()(" << *row << ", " << *col << ")"
+                      << " = " << operator()(*row, *col)
+                      << std::endl;
+            A(r, c) = operator()(*row, *col);
+        }
+    }
+    A.finalize();
 }
 
 

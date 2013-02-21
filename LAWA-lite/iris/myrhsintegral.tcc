@@ -21,7 +21,12 @@ MyRhsIntegral<T>::operator()(int j, int k, int deriv) const
 
     IntegralF<Gauss, PrimalBasis>   rhsIntegral(f, _V);
 
-    return rhsIntegral(j, k, e, deriv);
+    const T value = rhsIntegral(j, k, e, deriv);
+
+    std::cout << "(j, k, e) = (" << j << ", " << k << ", " << e << ") : "
+              << value << std::endl;
+
+    return value;
 }
 
 template <typename T>

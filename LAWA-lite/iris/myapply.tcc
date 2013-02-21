@@ -3,28 +3,30 @@
 
 #include <cassert>
 #include <iris/myapply.h>
+#include <iris/mysupport.h>
+#include <iris/myabssort.h>
 
 namespace lawa {
 
-using namespace lawa;
-using namespace std;
-
-
-template <typename Operator>
-MyApply<Operator>::MyApply(const Operator &OperatorA, double _eps, double _tol)
-    : A(OperatorA), eps(_eps), tol(_tol)
+template <typename Operator, typename Precond>
+MyApply<Operator, Precond>::MyApply(const Operator  &OperatorA,
+                                    const Precond   &_P, 
+                                    double          _eps)
+    : A(OperatorA), P(_P), eps(_eps)
 {
 }
 
-template <typename Operator>
+template <typename Operator, typename Precond>
 void
-MyApply<Operator>::operator()(Transpose              trans,
-                              const double           alpha,
-                              const RealDenseVector  &v,
-                              int                    &N,
-                              const double           beta,
-                              RealDenseVector        &w)  const
+MyApply<Operator, Precond>::operator()(Transpose              trans,
+                                       const double           alpha,
+                                       const RealDenseVector  &v,
+                                       const double           beta,
+                                       RealDenseVector        &w)  const
 {
+
+    assert(trans==NoTrans);
+
     if (beta==double(0)) {
         if ((trans==NoTrans) && (w.length()!=A.numRows())) {
             w.engine().resize(A.numRows(), 1);
@@ -47,169 +49,72 @@ MyApply<Operator>::operator()(Transpose              trans,
     }
 #   endif
 
-    for (int r=w.firstIndex(); r<=w.lastIndex(); ++r) {
-        w(r) *= beta;
+    if (beta!=double(1)) {
+        for (int r=w.firstIndex(); r<=w.lastIndex(); ++r) {
+            w(r) *= beta;
+        }
     }
 
+    using std::max;
     using std::min;
 
-    N     = cachePartialSort(v, tol);
+//
+//  Sort v
+//
+    static IntegerDenseVector  vSorted;
+    static IndexSet<int>       vSupport;
+
+    mySupport(v, vSupport);
+    vSorted.engine().resize(int(vSupport.size()));
+    myAbsSort(v, vSorted);
+
+    int N = vSorted.length();
+
     //cerr << "v = " << v << endl;
     //cerr << "vSorted = " << vSorted << endl;
-    cerr << "N = " << N << endl;
+    std::cerr << "N = " << N << std::endl;
 
-    int k = computeK(eps, v, N);
-    k = min(0, k);
-    cerr << "k = " << k << endl;
-
+    int k      = computeK(eps, v, vSorted);
     int maxBin = int(log(double(N))/log(double(2))) + 1;
-    maxBin = min(maxBin, k);
+
+    std::cerr << "k = " << k << std::endl;
+
+    maxBin = max(min(maxBin, k), 0);
+
+
 
     for (int bin=0; bin<=maxBin; ++bin) {
-        int j0 = 1<<bin;
-        int j1 = min(1<<(bin+1), N+1);
 
-        /*
-        std::cerr << "bin = " << bin
-                  << ", j0 = " << j0
-                  << ", j1 = " << j1
-                  << std::endl;
-        */
+        int p0 = 1<<bin;
+        int p1 = min(1<<(bin+1), N+1);
 
-        for (int p=j0; p<j1; ++p) {
+        for (int p=p0; p<p1; ++p) {
 
-            /*
-            std::cerr << "p = " << p
-                      << ", vSorted(p) = " << vSorted(p)
-                      << std::endl;
-            */
+            int L  = A.getLevelOfCol(vSorted(p));
 
-            if (trans==NoTrans) {
+            int j0 = max(A.j0, L-(k-bin));
+            int j1 = min(A.j1, L+(k-bin));
 
-                int L  = A.getLevelOfCol(vSorted(p));
-//                std::cerr << "col = " << vSorted(p) << std::endl;
+            for (int j=j0; j<j1; ++j) {
 
-                for (int j=min(A.j0, L-(k-bin)); j<max(A.j1, L+(k-bin)); ++j) {
+                int r0 = A.inCol_firstNonZeroWithLevel(vSorted(p), j);
+                int r1 = A.inCol_lastNonZeroWithLevel(vSorted(p), j);
+                r1 = std::min(r1, A.numRows());
 
-                    int r0 = A.inCol_firstNonZeroWithLevel(vSorted(p), j);
-                    int r1 = A.inCol_lastNonZeroWithLevel(vSorted(p), j);
-                    r1 = std::min(r1, A.numRows());
-
-/*
-                    std::cerr << "(" << j << ")  "
-                              << r0 << " : " << r1 << std::endl;
-*/
-
-                    for (int r=r0; r<=r1; ++r) {
-                        w(r) += alpha * A(r, vSorted(p)) * v(vSorted(p));
-                    }
+                for (int r=r0; r<=r1; ++r) {
+                    w(r) += alpha * P(r) * A(r, vSorted(p)) * v(vSorted(p));
                 }
 
-            } else if (trans==Trans) {
-
-                int j  = A.getLevelOfRow(vSorted(p));
-
-                int c0 = A.firstColWithLevel(j-(k-bin));
-                int c1 = A.lastColWithLevel(j+(k-bin));
-                c1 = std::min(c1, A.numCols());
-
-                for (int c=c0; c<=c1; ++c) {
-                    w(c) += alpha * v(vSorted(p)) * A(vSorted(p), c);
-                }
-
-            } else {
-                assert(0);
             }
         }
     }
 }
 
-template <typename Operator>
-void
-MyApply<Operator>::densify(int jMax, RealGeMatrix &MA) const
-{
-    int r1 = A.lastRowWithLevel(jMax);
-    int c1 = A.lastColWithLevel(jMax);
-
-    MA.engine().resize(r1, c1);
-
-    for (int c=1; c<=c1; ++c) {
-
-        if (c%100 == 0) {
-            std::cerr << "c = " << c << std::endl;
-        }
-
-        for (int j=A.j0-1; j<=jMax; ++j) {
-            int r1 = A.inCol_firstNonZeroWithLevel(c, j);
-            int r2 = A.inCol_lastNonZeroWithLevel(c, j);
-            
-            // std::cerr << r1 << " " << r2 << std::endl;
-            
-            for (int r=r1; r<=r2; ++r) {
-                MA(r, c) = A(r, c);
-            }
-        }
-    }
-}
-
-template <typename Operator>
-void
-MyApply<Operator>::precond(int jMax, RealDenseVector &VP) const
-{
-    using std::min;
-
-    int r1 = A.lastRowWithLevel(jMax);
-    int c1 = A.lastColWithLevel(jMax);
-
-    VP.engine().resize(min(r1, c1), 1);
-
-    for (int p=1; p<=min(r1,c1); ++p) {
-        int j = A.getLevelOfRow(p);
-        VP(p) = 1/double(1<<(j+1));
-    }
-}
-
-
-
-template <typename Operator>
+template <typename Operator, typename Precond>
 int
-MyApply<Operator>::cachePartialSort(const RealDenseVector  &v, double eps) const
-{
-    std::cerr << "start cachePartialSort ... ";
-    using std::abs;
-
-    int N = 0;
-
-    vSorted.engine().resize(v.length());
-    vSorted = 0;
-
-    for (int i=1, I=1; i<=v.length(); ++i) {
-        if (abs(v(i))>eps) {
-            vSorted(I) = i;
-            ++I;
-            ++N;
-        }
-    }
-
-    bool swapped;
-
-    do {
-        swapped = false;
-        for (int i=1; i<N; ++i) {
-            if (abs(v(vSorted(i)))<abs(v(vSorted(i+1)))) {
-                swap(vSorted(i), vSorted(i+1));
-                swapped = true;
-            }
-        }
-    } while (swapped);
-    std::cerr << "done." << endl;
-
-    return N;
-}
-
-template <typename Operator>
-int
-MyApply<Operator>::computeK(double eps, const RealDenseVector  &v, int N) const
+MyApply<Operator, Precond>::computeK(double                    eps,
+                                     const RealDenseVector     &v,
+                                     const IntegerDenseVector  &vSorted) const
 {
     using std::abs;
     using std::log;
@@ -217,8 +122,9 @@ MyApply<Operator>::computeK(double eps, const RealDenseVector  &v, int N) const
     using std::pow;
     using std::sqrt;
 
-    double s   = A.smoothness();
-    double tau = double(1)/(s+double(0.5));
+    const int    N   = vSorted.length();
+    const double s   = A.smoothness();
+    const double tau = double(1)/(s+double(0.5));
 
 //
 //  Compute k(eps) according to (7.28)
@@ -228,7 +134,6 @@ MyApply<Operator>::computeK(double eps, const RealDenseVector  &v, int N) const
         norm += pow(abs(v(vSorted(n))), 2);
     }
     norm = sqrt(norm);
-    //std::cerr << "    norm = " << norm << std::endl;
 
     double semiNorm = 0;
     for (int n=1; n<=N; ++n) {
@@ -237,11 +142,9 @@ MyApply<Operator>::computeK(double eps, const RealDenseVector  &v, int N) const
             semiNorm = tmp;
         }
     }
-    //std::cerr << "    semiNorm = " << semiNorm << std::endl;
     
     norm += semiNorm;
     
-    //int k_eps = 10 * double(1)/s * log(norm/eps) / log(double(2));
     int k_eps = double(1)/s * log(norm/eps) / log(double(2));
 
 //
@@ -269,12 +172,11 @@ MyApply<Operator>::computeK(double eps, const RealDenseVector  &v, int N) const
 
     for (int k=1; k<=k_eps; ++k) {
         double R_k = 0;
-        
+
         for (int i=k+1; i<=maxBin; ++i) {
             R_k += normSec(i);
         }
         R_k *= A.CA;
-        
         R_k += pow(2.,-k*s) * normSec(0);
 
         for (int l=0; l<=k-1; ++l) {
@@ -282,8 +184,6 @@ MyApply<Operator>::computeK(double eps, const RealDenseVector  &v, int N) const
                 R_k += pow(double(2),-l*s) * normSec(k-l);
             }
         }
-
-        // std::cerr << "R_k = " << R_k << std::endl;
 
         if (R_k<=eps) {
             //std::cerr << "   computeK ==> k = " << k << ", k_eps = " << k_eps << std::endl;
@@ -298,16 +198,16 @@ MyApply<Operator>::computeK(double eps, const RealDenseVector  &v, int N) const
     return std::min(k_eps, maxlevel);
 }
 
-template <typename Operator>
+template <typename Operator, typename Precond>
 int
-MyApply<Operator>::numRows() const
+MyApply<Operator, Precond>::numRows() const
 {
     return A.numRows();
 }
 
-template <typename Operator>
+template <typename Operator, typename Precond>
 int
-MyApply<Operator>::numCols() const
+MyApply<Operator, Precond>::numCols() const
 {
     return A.numCols();
 }
@@ -317,10 +217,10 @@ MyApply<Operator>::numCols() const
 
 namespace flens {
 
-template <typename Operator, typename VX, typename VY>
+template <typename Operator, typename Precond, typename VX, typename VY>
 void
 mv(Transpose transA, double alpha,
-   const MyApply<Operator> &A, const DenseVector<VX> &x,
+   const MyApply<Operator, Precond> &A, const DenseVector<VX> &x,
    double beta,
    DenseVector<VY> &y)
 {
@@ -347,7 +247,7 @@ mv(Transpose transA, double alpha,
 #   endif
 
     int N;
-    A(transA, alpha, x, N, beta, y);
+    A(transA, alpha, x, beta, y);
 }
 
 } // namespace flens

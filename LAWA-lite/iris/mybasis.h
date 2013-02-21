@@ -1,5 +1,5 @@
-#ifndef VALIDATE_MYBASIS_H
-#define VALIDATE_MYBASIS_H 1
+#ifndef IRIS_MYBASIS_H
+#define IRIS_MYBASIS_H 1
 
 namespace lawa {
 
@@ -72,4 +72,4 @@ struct MyBasis
 
 } // namespace lawa
 
-#endif // VALIDATE_MYBASIS_H
+#endif // IRIS_MYBASIS_H

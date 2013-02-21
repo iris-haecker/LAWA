@@ -141,9 +141,9 @@ GHS_ADWAV1D<T,Basis,APPLY1D,RHS>::GALSOLVE(const IndexSet<Index1D> &Lambda,
 
     //Determine compression level
     int J=0;        //compression
-    if         (d==2) {   J = -std::ceil(2*std::log(tol/((3*tol+3*delta)*kappa))); }
+    if      (d==2) {   J = -std::ceil(2*std::log(tol/((3*tol+3*delta)*kappa))); }
     else if (d==3) {   J = -std::ceil((1./1.5)*std::log(tol/((3*tol+3*delta)*kappa))); }
-    else              { assert(0); }
+    else           { assert(0); }
     //std::cerr << "   Estimated compression level for delta=" << delta << " and target tol=" << tol
     //          << " : " << J << std::endl;
 

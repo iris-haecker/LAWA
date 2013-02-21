@@ -97,11 +97,11 @@ int main (int argc, char *argv[]) {
 
     T eps=1e-5;
 
-    Basis1D basis(d,d_,jmin);
-    HelmholtzBilinearForm1D Bil(basis,1.);
-    Preconditioner1D P(basis);
-    Compression1D Compr(basis);
-    Parameters1D  parameters(basis,Bil,true,basis.j0);
+    Basis1D                     basis(d,d_,jmin);
+    HelmholtzBilinearForm1D     Bil(basis,1.);
+    Preconditioner1D            P(basis);
+    Compression1D               Compr(basis);
+    Parameters1D                parameters(basis,Bil,true,basis.j0);
 
     Function<T>        rhs_func(refsol.rhs,refsol.sing_pts);
     RhsIntegral1D      rhsintegral1d_singular(basis, rhs_func, refsol.deltas, 120, true, false);
@@ -205,16 +205,17 @@ computeRHSLambda_SmoothPart(const Basis1D &basis, T a, T b, int J_plus)
 
 template <typename T>
 Coefficients<Lexicographical,T,Index1D>
-initializeRHSVector(const Basis1D &basis, const RhsIntegral1D &rhsintegral1d_singular,
-                    const RhsIntegral1D &rhsintegral1d_smooth, const Preconditioner1D &P,
-                    RefSols_PDE_Realline1D<T> &refsol)
+initializeRHSVector(const Basis1D               &basis,
+                    const RhsIntegral1D         &rhsintegral1d_singular,
+                    const RhsIntegral1D         &rhsintegral1d_smooth,
+                    const Preconditioner1D      &P,
+                    RefSols_PDE_Realline1D<T>   &refsol)
 {
     T left_bound = 0., right_bound = 0.;
     int J_plus_smooth = 0, J_plus_singular = 0;
     bool singular_integral=false;
     refsol.getRHS_W_XBSplineParameters(basis.d, basis.d_, left_bound, right_bound, J_plus_smooth,
                                        J_plus_singular, singular_integral);
-
 
     Coefficients<Lexicographical,T,Index1D> f_singular;
     IndexSet<Index1D> LambdaRHS_singular = computeRHSLambda_SingularPart(basis,refsol.sing_pts,

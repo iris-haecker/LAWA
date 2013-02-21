@@ -7,26 +7,46 @@
 using namespace lawa;
 using namespace std;
 
+double
+g(double t)
+{
+    const int l  = 1;
+    const int u0 = 0;
+
+    // return sin(2*M_PI*l*t) + 2*M_PI*l*cos(2*M_PI*l*t) + u0;
+    // return t;
+    return 2;
+}
+
 int
 main()
 {
     typedef flens::DenseVector<Array<double> >               RealDenseVector;
     typedef flens::DenseVector<Array<int> >                  IntDenseVector;
+    typedef MyOperator<double>                               Operator;
+    typedef MyRhs<double>                                    Rhs;
+
+    const int d  = 3;
+    const int d_ = 5;
+
+    const int jMax = 3;
+    const double eps = 0.00001;
 
 
-    RealDenseVector   x(5);
-    IntDenseVector    xi;
+    Operator             OperatorA(d, d_, jMax);
+    Rhs                  rhs(Function<double>(g), OperatorA);
 
-    x = 1, -2, 3, 1.5, -5;
+    MyApply<Operator>    A(OperatorA, eps);
 
-    myAbsSort(x, xi);
+    RealDenseVector      x(A.numCols());
+    RealDenseVector      b;
 
-    cout << "x  = " << x << endl;
-    cout << "xi = " << xi << endl;
+    rhs.filter(0.2, b);
+    cerr << "b = " << b << endl;
 
-    for (int k=1; k<=xi.length(); ++k) {
-        cout << x(xi(k)) << "  ";
-    }
-    cout << endl;
+    rhs.filter(0.1, b);
+    cerr << "b = " << b << endl;
 
+    rhs.filter(0, b);
+    cerr << "b = " << b << endl;
 }

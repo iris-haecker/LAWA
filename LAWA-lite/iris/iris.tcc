@@ -3,10 +3,14 @@
 
 #include <iris/myabssort.tcc>
 #include <iris/myapply.tcc>
-#include <iris/myapplyata.tcc>
 #include <iris/mybasis.tcc>
+#include <iris/myghs.tcc>
 #include <iris/myintegral.tcc>
 #include <iris/myoperator.tcc>
+#include <iris/myprecond.tcc>
+#include <iris/myrestrict.tcc>
+#include <iris/myrhs.tcc>
 #include <iris/myrhsintegral.tcc>
+#include <iris/mysupport.tcc>
 
 #endif // IRIS_IRIS_TCC
