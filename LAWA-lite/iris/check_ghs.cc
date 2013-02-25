@@ -1,9 +1,27 @@
 #include <iostream>
 #define SOLVER_DEBUG
 
+
+#include <lawa/flensforlawa.h>
+#include <extensions/flens/sparsematrix.h>
+#include <extensions/flens/crs.h>
+
+namespace flens {
+
+// sparse_gemv
+template <typename T, typename VX, typename VY>
+void
+mv(cxxblas::Transpose trans, T alpha, const SparseGeMatrix<CRS<T> > &A,
+   const DenseVector<VX> &x,
+   typename DenseVector<VY>::ElementType beta, DenseVector<VY> &y);
+
+}
+
+
 #include <iris/iris.cxx>
 
 
+using namespace flens;
 using namespace lawa;
 using namespace std;
 
@@ -29,29 +47,17 @@ main()
     const int d  = 2;
     const int d_ = 4;
 
-    const int    jMax = 3;
+    const int    jMax = 5;
     const double eps = 0.00001;
+    const int    numOfIterations = 20;
 
     Operator              operatorA(d, d_, jMax);
     Precond               P(operatorA);
     Rhs                   rhs(Function<double>(g), operatorA, P);
+    RealDenseVector       w;
 
-    RealDenseVector       x(operatorA.numCols());
+    GHS                   ghs(operatorA, rhs, P, 0.4, 0.012618, 0.009581, 2./7);
 
-    GHS                   ghs(operatorA, rhs, P, 0.4, 0.012618, 2./7);
+    ghs.solve(rhs.norm, eps, numOfIterations, w);
 
-    double                nu;
-    IndexSet<int>         Lambda;
-
-    ghs.grow(x, rhs.norm, eps, nu, Lambda);
-
-    cerr << "nu = " << nu << endl;
-    cerr << "Lambda = " << Lambda << endl;
-    
-    
-    SparseGeMatrix<CRS<double ,CRS_General> >  B;
-    myRestrict(operatorA, P, Lambda, B);
-    
-    //cerr << "B = " << B << endl;
-    
 }

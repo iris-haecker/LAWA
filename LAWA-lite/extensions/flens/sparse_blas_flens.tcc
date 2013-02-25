@@ -33,7 +33,7 @@
 #include <cassert>
 #include <extensions/flens/sparse_blas.h>
 
-namespace flens { namespace blas {
+namespace flens {
 
 template <typename T, typename VX, typename VY>
 void
@@ -216,5 +216,5 @@ mm(cxxblas::Transpose transA,
           beta, C.engine().data(), C.leadingDimension());
 }
 
-} } // namespase blas, flens
+} // namespase flens
 

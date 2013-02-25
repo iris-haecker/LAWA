@@ -4,6 +4,7 @@
 #include <iris/myabssort.h>
 #include <iris/myapply.h>
 #include <iris/mybasis.h>
+#include <iris/myexpand.h>
 #include <iris/myghs.h>
 #include <iris/myintegral.h>
 #include <iris/myoperator.h>

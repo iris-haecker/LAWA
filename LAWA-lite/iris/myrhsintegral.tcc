@@ -23,9 +23,10 @@ MyRhsIntegral<T>::operator()(int j, int k, int deriv) const
 
     const T value = rhsIntegral(j, k, e, deriv);
 
-    std::cout << "(j, k, e) = (" << j << ", " << k << ", " << e << ") : "
+/*
+    std::cerr << "(j, k, e) = (" << j << ", " << k << ", " << e << ") : "
               << value << std::endl;
-
+*/
     return value;
 }
 

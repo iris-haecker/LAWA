@@ -31,7 +31,7 @@ cg(const MA &A, VX &x, const VB &b, typename _cg<VB>::T tol,
     typename _cg<VB>::T alpha, beta, rNormSquare, rNormSquarePrev;
     typename _cg<VB>::AuxVector Ap, r, p;
 
-    std::cerr << "cg" << std::endl;
+    std::cerr << "-> cg" << std::endl;
 
     if (x.length()!=A.numCols()) {
         x.engine().resize(A.numCols());

@@ -1,5 +1,5 @@
 include $(LAWA_HOME)/Makefile.common
-SUBDIRS := lawa extensions tutorials applications validate
+SUBDIRS := lawa extensions tutorials applications #validate
 
 all:
 	$(SILENT) for i in $(SUBDIRS); \

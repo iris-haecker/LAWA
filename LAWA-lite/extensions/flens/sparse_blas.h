@@ -35,7 +35,7 @@
 
 #include <lawa/flensforlawa.h>
 
-namespace flens { namespace blas {
+namespace flens {
 
 //-- crs - compressed row storage ----------------------------------------------
 
@@ -75,7 +75,7 @@ csrmm(cxxblas::Transpose transA, int m, int n, int k, double alpha, char *matdes
       const int *pointerE, const double *B, int ldb,
       double beta, double *C, int ldc);
 
-} } // namespace blas, flens
+} // namespace flens
 
 #include <extensions/flens/sparse_blas.tcc>
 

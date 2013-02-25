@@ -32,7 +32,7 @@
 
 #include <cassert>
 
-namespace flens { namespace blas {
+namespace flens {
 
 //-- crs - compressed row storage ----------------------------------------------
 
@@ -132,5 +132,5 @@ crs_symv(cxxblas::StorageUpLo upLo, int m, T alpha,
     }
 }
 
-} } // namespace blas, flens
+} // namespace flens
 

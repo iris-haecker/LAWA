@@ -45,6 +45,27 @@ MyRhs<T, Precond>::filter(const T &tol, DenseVector<VX> &x) const
     return count;
 }
 
+template <typename T, typename Precond>
+template <typename TI, typename VX>
+int
+MyRhs<T, Precond>::filter(const T             &tol,
+                          const IndexSet<TI>  &Lambda,
+                          DenseVector<VX>     &x) const
+{
+    typedef IndexSet<int>::const_iterator  iterator;
+
+    const int N = Lambda.size();
+    x.engine().resize(N);
+
+    int K=1;
+    for (iterator k=Lambda.begin(); k!=Lambda.end(); ++k, ++K) {
+        if (abs(rhsData(*k))>tol) {
+            x(K) = rhsData(*k);
+        }
+    }
+}
+
+
 } // namespace lawa
 
 

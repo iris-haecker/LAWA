@@ -12,8 +12,10 @@ MyGHS<Operator, Rhs, Precond>::MyGHS(const Operator  &_opA,
                                      const Precond   &_P,
                                      double          _alpha,
                                      double          _omega,
+                                     double          _gamma,
                                      double          _theta)
-    : opA(_opA), rhs(_rhs), P(_P), alpha(_alpha), omega(_omega), theta(_theta)
+    : opA(_opA), rhs(_rhs), P(_P), alpha(_alpha), omega(_omega), gamma(_gamma),
+      theta(_theta)
 {
 }
 
@@ -29,7 +31,14 @@ MyGHS<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
     static IntegerDenseVector   rAbsSorted;
     double rNorm, rLambdaNormSquare;
 
+    std::cerr << "nu_ =   " << nu_ << std::endl;
+
+
     double zeta = 2*omega*nu_/(1-omega);
+    std::cerr << "zeta =  " << zeta << std::endl;
+    std::cerr << "nu_ =   " << nu_ << std::endl;
+    std::cerr << "omega = " << omega << std::endl;
+
 
     do {
         zeta = zeta/2;
@@ -46,7 +55,12 @@ MyGHS<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
         if ((nu <= epsilon) || (zeta <= omega*rNorm)) {
             break;
         }
-        
+        std::cerr << "nu =    " << nu << std::endl;
+        std::cerr << "zeta =  " << zeta << std::endl;
+        std::cerr << "omega = " << omega << std::endl;
+        std::cerr << "rNorm = " << rNorm << std::endl;
+        std::cerr << "omega*rNorm = " << omega*rNorm << std::endl;
+
     } while (true);
 
     std::cerr << "rNorm = " << rNorm << std::endl;
@@ -101,6 +115,77 @@ MyGHS<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 
     }
 }
+
+template <typename Operator, typename Rhs, typename Precond>
+void
+MyGHS<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
+                                        const RealDenseVector  &g,
+                                        RealDenseVector        &w,
+                                        double                 delta,
+                                        double                 epsilon) const
+{
+    using namespace std;
+
+    const int N = Lambda.size();
+
+    if (N==0) {
+        return;
+    }
+
+    cerr << "1" << endl;
+
+    SparseGeMatrix<CRS<double ,CRS_General> >  B;
+    myRestrict(opA, P, Lambda, B);
+
+    MyApply<Operator, Precond>  A(opA, P, epsilon/3);
+    RealDenseVector Aw;
+    cerr << "2" << endl;
+
+    Aw = A*w;
+    cerr << "3" << endl;
+
+    RealDenseVector r;
+    myRestrict(g, Lambda, r);
+    cerr << "4" << endl;
+    myRestrictSub(Aw, Lambda, r);
+    cerr << "5" << endl;
+
+    RealDenseVector x(B.numCols());
+    lawa::cg(B, x, r, epsilon, 4);
+    std::cerr << "x =" << x << std::endl;
+
+    myExpandAdd(x, Lambda, w);
+}
+
+template <typename Operator, typename Rhs, typename Precond>
+void
+MyGHS<Operator, Rhs, Precond>::solve(double           nuM1,
+                                     double           epsilon,
+                                     int              numOfIterations,
+                                     RealDenseVector  &w) const
+{
+    double           nu_kM1 = nuM1;
+    double           nu_k;
+    RealDenseVector  g_kP1;
+    IndexSet<int>    Lambda_kP1;
+
+    if (w.length()!=opA.numCols()) {
+        w.engine().resize(opA.numCols());
+    }
+
+    for (int k=0; k<numOfIterations; ++k) {
+        grow(w, theta*nu_kM1, epsilon, nu_k, Lambda_kP1);
+        if (nu_k<=epsilon) {
+            break;
+        }
+
+        rhs.filter(0, g_kP1);
+
+        galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+        nu_kM1 = nu_k;
+    }
+}
+
 
 } // namespace lawa
 

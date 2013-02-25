@@ -7,7 +7,7 @@ template <typename T>
 MyBasis<T>::MyBasis(int d, int d_, int j0)
     : basisLeft(d, d_, j0), basisRight(d, d_, j0)
 {
-    std::cerr << "j0 = " << basisLeft.j0 << std::endl;
+    std::cerr << "-> j0 = " << basisLeft.j0 << std::endl;
 }
     
 template <typename T>

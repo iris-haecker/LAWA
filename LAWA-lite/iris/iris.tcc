@@ -4,6 +4,7 @@
 #include <iris/myabssort.tcc>
 #include <iris/myapply.tcc>
 #include <iris/mybasis.tcc>
+#include <iris/myexpand.tcc>
 #include <iris/myghs.tcc>
 #include <iris/myintegral.tcc>
 #include <iris/myoperator.tcc>

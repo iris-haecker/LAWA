@@ -23,6 +23,7 @@ myRestrict(const Operator       &A,
     for (iterator row=Lambda.begin(); row!=Lambda.end(); ++row, ++r) {
         c = 1;
         for (iterator col=Lambda.begin(); col!=Lambda.end(); ++col, ++c) {
+
             std::cerr << "B(" << r << ", " << c
                       << ") = P(" << *row
                       << ") * A(" << *row << ", " << *col << ")"
@@ -32,6 +33,40 @@ myRestrict(const Operator       &A,
         }
     }
     B.finalize();
+}
+
+template <typename VX, typename TI, typename VY>
+void
+myRestrict(const DenseVector<VX>  &x,
+           const IndexSet<TI>     &Lambda,
+           DenseVector<VY>        &y)
+{
+    typedef IndexSet<int>::const_iterator  iterator;
+
+    const int N = Lambda.size();
+    y.engine().resize(N);
+
+    int K=1;
+    for (iterator k=Lambda.begin(); k!=Lambda.end(); ++k, ++K) {
+        y(K) = x(*k);
+    }
+}
+
+template <typename VX, typename TI, typename VY>
+void
+myRestrictSub(const DenseVector<VX>  &x,
+              const IndexSet<TI>     &Lambda,
+              DenseVector<VY>        &y)
+{
+    typedef IndexSet<int>::const_iterator  iterator;
+
+    const int N = Lambda.size();
+    y.engine().resize(N);
+
+    int K=1;
+    for (iterator k=Lambda.begin(); k!=Lambda.end(); ++k, ++K) {
+        y(K) -= x(*k);
+    }
 }
 
 } // namespace lawa

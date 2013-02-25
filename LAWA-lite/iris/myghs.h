@@ -16,6 +16,7 @@ struct MyGHS
           const Precond   &P,
           double          alpha,
           double          omega,
+          double          gamma,
           double          theta);
 
     void
@@ -25,22 +26,23 @@ struct MyGHS
          double                 &nu,
          IndexSet<int>          &Lambda) const;
 
-     void
-     galsolve(const IndexSet<int>    &Lambda,
-              const RealDenseVector  &g,
-              RealDenseVector        &w,
-              double                 delta,
-              double                 epsilon) const;
-
-
+    void
+    galsolve(const IndexSet<int>    &Lambda,
+             const RealDenseVector  &g,
+             RealDenseVector        &w,
+             double                 delta,
+             double                 epsilon) const;
 
     void
-    solve() const;
+    solve(double           nuM1,
+          double           epsilon,
+          int              numOfIterations,
+          RealDenseVector  &w) const;
 
     const Operator  &opA;
     const Rhs       &rhs;
     const Precond   &P;
-    const double    alpha, omega, theta;
+    const double    alpha, omega, gamma, theta;
 };
 
 } // namespace lawa

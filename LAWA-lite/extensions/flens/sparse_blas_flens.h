@@ -37,9 +37,9 @@
 #include <extensions/flens/sparsematrix.h>
 #include <extensions/flens/crs.h>
 
-namespace flens { namespace blas {
+namespace flens { 
 
-// sparse_gemv
+// sparse_gemv1
 template <typename T, typename VX, typename VY>
 void
 mv(cxxblas::Transpose trans, T alpha, const SparseGeMatrix<CRS<T> > &A,
@@ -74,7 +74,7 @@ mm(cxxblas::Transpose transA,
    const GeMatrix<FullStorage<T, cxxblas::ColMajor> > &B,
    T beta, GeMatrix<FullStorage<T, cxxblas::ColMajor> > &C);
 
-} } // namespace blas, flens
+} // flens
 
 #include <extensions/flens/sparse_blas_flens.tcc>
 
