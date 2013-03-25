@@ -1,5 +1,5 @@
-#ifndef IRIS_RHS_TCC
-#define IRIS_RHS_TCC 1
+#ifndef IRIS_MYRHS_TCC
+#define IRIS_MYRHS_TCC 1
 
 #include <lawa/flensforlawa.h>
 #include <iris/mybasis.h>
@@ -19,6 +19,7 @@ MyRhs<T, Precond>::MyRhs(const Function<T> &f,
 
     rhsData.engine().resize(myOperator.numRows(), myOperator.firstRow());
 
+    norm = 0;
     for (int k=rhsData.firstIndex(); k<=rhsData.lastIndex(); ++k) {
         rhsData(k) = P(k)*rhsIntegral(k);
         norm += pow(rhsData(k), 2);
@@ -69,4 +70,4 @@ MyRhs<T, Precond>::filter(const T             &tol,
 } // namespace lawa
 
 
-#endif // IRIS_RHS_TCC
+#endif // IRIS_MYRHS_TCC

@@ -31,8 +31,6 @@ cg(const MA &A, VX &x, const VB &b, typename _cg<VB>::T tol,
     typename _cg<VB>::T alpha, beta, rNormSquare, rNormSquarePrev;
     typename _cg<VB>::AuxVector Ap, r, p;
 
-    std::cerr << "-> cg" << std::endl;
-
     if (x.length()!=A.numCols()) {
         x.engine().resize(A.numCols());
         std::cerr << "x.length() = " << x.length() << std::endl;
@@ -41,8 +39,6 @@ cg(const MA &A, VX &x, const VB &b, typename _cg<VB>::T tol,
     r = A*x - b;
     p = -1*r;
     rNormSquare = r*r;
-
-    std::cout << "rNormSquare = " << rNormSquare << std::endl;
 
     for (int k=1; k<=maxIterations; k++) {
         #ifdef SOLVER_DEBUG
@@ -62,10 +58,12 @@ cg(const MA &A, VX &x, const VB &b, typename _cg<VB>::T tol,
         beta = rNormSquare/rNormSquarePrev;
         p = beta*p - r;
 
+        /*
         std::cout << "k = " << k
                   << ", rNormSquare = " << rNormSquare
                   << ", rho = " << sqrt(rNormSquare)
                   << std::endl;
+        */
     }
     return maxIterations;
 }
@@ -166,10 +164,12 @@ pcg(const Prec &P, const MA &A, VX &x, const VB &b,
                 << std::endl;
         #endif
 
+        /*
         std::cout << "k = " << k
                   << ", pNormSquare = " << pNormSquare
                   << ", rho = " << sqrt(pNormSquare)
                   << std::endl;
+        */
 
         if (sqrt(pNormSquare)<=tol) {
             return k-1;

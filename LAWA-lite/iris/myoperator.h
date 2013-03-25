@@ -63,6 +63,12 @@ struct MyOperator
     int
     inCol_lastNonZeroWithLevel(int col, int j) const;
 
+    int
+    inRow_firstNonZeroWithLevel(int row, int j) const;
+
+    int
+    inRow_lastNonZeroWithLevel(int row, int j) const;
+
     void
     densify(RealGeMatrix &MA, int jMax = -1, bool brute = false) const;
 

@@ -23,12 +23,6 @@ myRestrict(const Operator       &A,
     for (iterator row=Lambda.begin(); row!=Lambda.end(); ++row, ++r) {
         c = 1;
         for (iterator col=Lambda.begin(); col!=Lambda.end(); ++col, ++c) {
-
-            std::cerr << "B(" << r << ", " << c
-                      << ") = P(" << *row
-                      << ") * A(" << *row << ", " << *col << ")"
-                      << " = " << P(*row) * A(*row, *col)
-                      << std::endl;
             B(r, c) = P(*row) * A(*row, *col);
         }
     }
@@ -44,7 +38,10 @@ myRestrict(const DenseVector<VX>  &x,
     typedef IndexSet<int>::const_iterator  iterator;
 
     const int N = Lambda.size();
-    y.engine().resize(N);
+    if (y.length()==0) {
+        y.engine().resize(N);
+    }
+    assert(y.length()==N);
 
     int K=1;
     for (iterator k=Lambda.begin(); k!=Lambda.end(); ++k, ++K) {
@@ -61,7 +58,10 @@ myRestrictSub(const DenseVector<VX>  &x,
     typedef IndexSet<int>::const_iterator  iterator;
 
     const int N = Lambda.size();
-    y.engine().resize(N);
+    if (y.length()==0) {
+        y.engine().resize(N);
+    }
+    assert(y.length()==N);
 
     int K=1;
     for (iterator k=Lambda.begin(); k!=Lambda.end(); ++k, ++K) {

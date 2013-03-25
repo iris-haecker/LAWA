@@ -144,6 +144,24 @@ MyOperator<T>::inCol_lastNonZeroWithLevel(int col, int j) const
 }
 
 template <typename T>
+int
+MyOperator<T>::inRow_firstNonZeroWithLevel(int row, int j) const
+{
+    return V.getFirstAbsoluteIndex(j)
+         + V.minK(j, U.support(row).l1)
+         - V.firstIndex(j);
+}
+
+template <typename T>
+int
+MyOperator<T>::inRow_lastNonZeroWithLevel(int row, int j) const
+{
+    return V.getFirstAbsoluteIndex(j)
+         + V.maxK(j, U.support(row).l2)
+         - V.firstIndex(j);
+}
+
+template <typename T>
 void
 MyOperator<T>::densify(RealGeMatrix &MA, int jMax, bool brute) const
 {

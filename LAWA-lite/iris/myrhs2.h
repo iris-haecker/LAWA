@@ -1,5 +1,5 @@
-#ifndef IRIS_MYRHS_H
-#define IRIS_MYRHS_H 1
+#ifndef IRIS_MYRHS2_H
+#define IRIS_MYRHS2_H 1
 
 #include <lawa/flensforlawa.h>
 #include <iris/mybasis.h>
@@ -8,11 +8,12 @@
 namespace lawa {
 
 template <typename T, typename Precond>
-struct MyRhs
+struct MyRhs2
 {
-    MyRhs(const Function<T>     &f,
-          const MyOperator<T>   &myOperator,
-          const Precond         &P);
+    MyRhs2(const Function<T>     &f,
+           const MyOperator<T>   &myOperator,
+           const Precond         &P,
+           T                     eps);
 
     template <typename VX>
         int
@@ -32,4 +33,4 @@ struct MyRhs
 
 } // namespace lawa
 
-#endif // IRIS_MYRHS_H
+#endif // IRIS_MYRHS2_H

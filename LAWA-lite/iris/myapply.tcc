@@ -24,8 +24,9 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
                                        const double           beta,
                                        RealDenseVector        &w)  const
 {
-
-    assert(trans==NoTrans);
+    using std::abs;
+    using std::max;
+    using std::min;
 
     if (beta==double(0)) {
         if ((trans==NoTrans) && (w.length()!=A.numRows())) {
@@ -55,12 +56,11 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
         }
     }
 
-    using std::max;
-    using std::min;
-
 //
 //  Sort v
 //
+    std::cerr << "APPLY: Start" << std::endl;
+
     static IntegerDenseVector  vSorted;
     static IndexSet<int>       vSupport;
 
@@ -68,45 +68,88 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
     vSorted.engine().resize(int(vSupport.size()));
     myAbsSort(v, vSorted);
 
-    int N = vSorted.length();
+    int N = myNNZ(v, vSorted);
 
     //cerr << "v = " << v << endl;
     //cerr << "vSorted = " << vSorted << endl;
-    std::cerr << "N = " << N << std::endl;
 
     int k      = computeK(eps, v, vSorted);
     int maxBin = int(log(double(N))/log(double(2))) + 1;
 
-    std::cerr << "k = " << k << std::endl;
-
     maxBin = max(min(maxBin, k), 0);
 
+    std::cerr << "APPLY: Sorted (N = " << N << ")" << std::endl;
 
 
-    for (int bin=0; bin<=maxBin; ++bin) {
+    if (trans==NoTrans) {
 
-        int p0 = 1<<bin;
-        int p1 = min(1<<(bin+1), N+1);
+        for (int bin=0; bin<=maxBin; ++bin) {
 
-        for (int p=p0; p<p1; ++p) {
+            int p0 = 1<<bin;
+            int p1 = min(1<<(bin+1), N+1);
 
-            int L  = A.getLevelOfCol(vSorted(p));
+            for (int p=p0; p<p1; ++p) {
 
-            int j0 = max(A.j0, L-(k-bin));
-            int j1 = min(A.j1, L+(k-bin));
+                int L  = A.getLevelOfCol(vSorted(p));
 
-            for (int j=j0; j<j1; ++j) {
+                int j0 = max(A.j0, L-(k-bin));
+                int j1 = min(A.j1, L+(k-bin));
 
-                int r0 = A.inCol_firstNonZeroWithLevel(vSorted(p), j);
-                int r1 = A.inCol_lastNonZeroWithLevel(vSorted(p), j);
-                r1 = std::min(r1, A.numRows());
+                for (int j=j0; j<j1; ++j) {
 
-                for (int r=r0; r<=r1; ++r) {
-                    w(r) += alpha * P(r) * A(r, vSorted(p)) * v(vSorted(p));
+                    int r0 = A.inCol_firstNonZeroWithLevel(vSorted(p), j);
+                    int r1 = A.inCol_lastNonZeroWithLevel(vSorted(p), j);
+                    r1 = std::min(r1, A.numRows());
+
+                    for (int r=r0; r<=r1; ++r) {
+                        w(r) += alpha * P(r) * A(r, vSorted(p)) * v(vSorted(p));
+                    }
+
                 }
-
             }
         }
+
+    } else if (trans==Trans) {
+
+        for (int bin=0; bin<=maxBin; ++bin) {
+
+            int p0 = 1<<bin;
+            int p1 = min(1<<(bin+1), N+1);
+
+            std::cerr << "APPLY: bin = " << bin
+                      << ", k - bin = " << k - bin
+                      << " (maxBin " << maxBin
+                      << ", bin size " << p1-p0
+                      << ", p0 = " << p0
+                      << ", p1 = " << p1
+                      << ")" << std::endl;
+
+
+            for (int p=p0; p<p1; ++p) {
+
+                if (v(vSorted(p))==0) {
+                    continue;
+                }
+
+                int L  = A.getLevelOfRow(vSorted(p));
+
+                int j0 = max(A.j0, L-(k-bin));
+                int j1 = min(A.j1, L+(k-bin));
+
+                for (int j=j0; j<j1; ++j) {
+
+                    int c0 = A.inRow_firstNonZeroWithLevel(vSorted(p), j);
+                    int c1 = A.inRow_lastNonZeroWithLevel(vSorted(p), j);
+                    c1 = std::min(c1, A.numCols());
+
+                    for (int c=c0; c<=c1; ++c) {
+                        w(c) += alpha * P(c) * A(vSorted(p), c) * v(vSorted(p));
+                    }
+
+                }
+            }
+        }
+
     }
 }
 

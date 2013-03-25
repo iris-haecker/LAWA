@@ -1,5 +1,5 @@
-#ifndef IRIS_MYGHS_TCC
-#define IRIS_MYGHS_TCC 1
+#ifndef IRIS_MYGHS2_TCC
+#define IRIS_MYGHS2_TCC 1
 
 #include <map>
 #include <iris/iris.h>
@@ -7,13 +7,13 @@
 namespace lawa {
 
 template <typename Operator, typename Rhs, typename Precond>
-MyGHS<Operator, Rhs, Precond>::MyGHS(const Operator  &_opA,
-                                     const Rhs       &_rhs,
-                                     const Precond   &_P,
-                                     double          _alpha,
-                                     double          _omega,
-                                     double          _gamma,
-                                     double          _theta)
+MyGHS2<Operator, Rhs, Precond>::MyGHS2(const Operator  &_opA,
+                                       const Rhs       &_rhs,
+                                       const Precond   &_P,
+                                       double          _alpha,
+                                       double          _omega,
+                                       double          _gamma,
+                                       double          _theta)
     : opA(_opA), rhs(_rhs), P(_P), alpha(_alpha), omega(_omega), gamma(_gamma),
       theta(_theta)
 {
@@ -21,13 +21,13 @@ MyGHS<Operator, Rhs, Precond>::MyGHS(const Operator  &_opA,
 
 template <typename Operator, typename Rhs, typename Precond>
 void
-MyGHS<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
-                                    double                 nu_,
-                                    double                 epsilon,
-                                    double                 &nu,
-                                    IndexSet<int>          &Lambda) const
+MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
+                                     double                 nu_,
+                                     double                 epsilon,
+                                     double                 &nu,
+                                     IndexSet<int>          &Lambda) const
 {
-    static RealDenseVector      r;
+    static RealDenseVector      r, Aw;
     static IntegerDenseVector   rAbsSorted;
     double rNorm, rLambdaNormSquare;
 
@@ -45,7 +45,8 @@ MyGHS<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 //
         MyApply<Operator, Precond>  A(opA, P, zeta/2);
         rhs.filter(zeta/2, r);
-        r -= A*w;
+        Aw = A*w;
+        r -= transpose(A)*Aw;
 
         // std::cerr << "r = " << r << std::endl;
 
@@ -126,11 +127,11 @@ MyGHS<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 
 template <typename Operator, typename Rhs, typename Precond>
 void
-MyGHS<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
-                                        const RealDenseVector  &g,
-                                        RealDenseVector        &w,
-                                        double                 delta,
-                                        double                 epsilon) const
+MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
+                                         const RealDenseVector  &g,
+                                         RealDenseVector        &w,
+                                         double                 delta,
+                                         double                 epsilon) const
 {
     using namespace std;
 
@@ -169,10 +170,10 @@ MyGHS<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
 
 template <typename Operator, typename Rhs, typename Precond>
 void
-MyGHS<Operator, Rhs, Precond>::solve(double           nuM1,
-                                     double           epsilon,
-                                     int              numOfIterations,
-                                     RealDenseVector  &w) const
+MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
+                                      double           epsilon,
+                                      int              numOfIterations,
+                                      RealDenseVector  &w) const
 {
     double           nu_kM1 = nuM1;
     double           nu_k;
@@ -189,13 +190,6 @@ MyGHS<Operator, Rhs, Precond>::solve(double           nuM1,
         std::cerr << "k = " << k
                   << ": nu_k = " << nu_k
                   << std::endl;
-        /*
-        std::cerr << "k = " << k
-                  << ", Lambda_kP1 = " << Lambda_kP1
-                  << ", nu_k = " << nu_k
-                  << ", epsilon = " << epsilon
-                  << std::endl;
-        */
 
         if (nu_k<=epsilon) {
             break;
@@ -214,4 +208,4 @@ MyGHS<Operator, Rhs, Precond>::solve(double           nuM1,
 
 } // namespace lawa
 
-#endif // IRIS_MYGHS_H
+#endif // IRIS_MYGHS2_H

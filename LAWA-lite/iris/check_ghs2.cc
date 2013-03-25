@@ -31,9 +31,7 @@ g(double t)
     const int l  = 1;
     const int u0 = 0;
 
-    //return sin(2*M_PI*l*t) + 2*M_PI*l*cos(2*M_PI*l*t) + u0;
-    //return 4*M_PI*M_PI*sin(M_PI*t);
-    return 1;
+    return sin(2*M_PI*l*t) + 2*M_PI*l*cos(2*M_PI*l*t) + u0;
 }
 
 int
@@ -42,9 +40,9 @@ main()
     typedef flens::DenseVector<Array<double> >              RealDenseVector;
     typedef flens::DenseVector<Array<int> >                 IntDenseVector;
     typedef MyOperator<double>                              Operator;
-    typedef MyPrecond<Operator>                             Precond;
-    typedef MyRhs<double, Precond>                          Rhs;
-    typedef MyGHS<Operator, Rhs, Precond>                   GHS;
+    typedef MyPrecond2<Operator>                            Precond;
+    typedef MyRhs2<double, Precond>                         Rhs;
+    //typedef MyGHS2<Operator, Rhs, Precond>                  GHS;
     typedef MyEval<double>                                  Eval;
 
     const int d  = 3;
@@ -54,9 +52,21 @@ main()
     const double eps = 0.0000001;
     const int    numOfIterations = 40;
 
+    std::cerr << "Hello1" << std::endl;
+
     Operator              operatorA(d, d_, jMax);
+
+    std::cerr << "Hello2" << std::endl;
+
     Precond               P(operatorA);
-    Rhs                   rhs(Function<double>(g), operatorA, P);
+
+    std::cerr << "Hello3" << std::endl;
+
+    Rhs                   rhs(Function<double>(g), operatorA, P, eps);
+
+    std::cerr << "Hello4" << std::endl;
+
+/*
     RealDenseVector       w;
 
 
@@ -73,7 +83,7 @@ main()
 
     Eval sol(operatorA.U, w);
 
-    sol.dump(1000, "ghs.dat");
+    sol.dump(1000, "ghs2.dat");
 
-
+*/
 }
