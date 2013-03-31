@@ -47,13 +47,15 @@ MyRhs2<T, Precond>::MyRhs2(const Function<T>    &f,
 //
 //  Compute an approximation of right-hand side A^T*b
 //
+#   ifdef  USE_APPLY
     MyApply<MyOperator<T>, Precond> A(myOperator, P, norm*eps);
     rhsData = transpose(A)*b;
-    //rhsData = myOperator*b;
-    //rhsData = transpose(myOperator)*b;
-    //std::cerr << "computed transpose(A)*b" << rhsData << std::endl;
-    //std::cerr << "A.numRows() = " << A.numRows() << std::endl;
-    //std::cerr << "A.numCols() = " << A.numCols() << std::endl;
+
+#   else
+    rhsData = transpose(myOperator)*b;
+
+#   endif
+
 
 //
 //  Apply the preconditioner and compute the norm of P*A^T*b

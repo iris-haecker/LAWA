@@ -53,9 +53,9 @@ main()
     const int d  = 3;
     const int d_ = 5;
 
-    const int    jMaxV = 9;
-    const int    jMaxU = 9;
-    const double eps = 0.000000000001;
+    const int    jMaxV = 8;
+    const int    jMaxU = 8;
+    const double eps = 0.000000001;
     const int    numOfIterations = 400;
 
     Operator              operatorA(d, d_, jMaxV, jMaxU);
@@ -72,14 +72,15 @@ main()
     double  gamma = 0.009581;
     double  theta = 2./7;
 
-    alpha = 0.75;
-
     std::cerr.precision(20);
     std::cerr << "rhs = " << rhs.rhsData << std::endl;
     std::cerr.precision(20);
     //std::cerr << "operatorA = " << operatorA << std::endl;
 
     GHS     ghs(operatorA, rhs, alpha, omega, gamma, theta);
+
+    ghs.solve(rhs.norm, eps, numOfIterations, w);
+
 
 /*
     double           nu_kM1 = rhs.norm;
@@ -186,12 +187,11 @@ main()
     std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
 */
 
-    ghs.solve(rhs.norm, eps, numOfIterations, w);
 
-/*
+
     Eval sol(operatorA.U, w);
 
     sol.dump(1000, "ghs2.dat");
 
-*/
+
 }

@@ -4,6 +4,7 @@
 #include <limits>
 #include <map>
 #include <iris/iris.h>
+#include <cmath>
 
 namespace lawa {
 
@@ -27,10 +28,14 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
                                      double                 &nu,
                                      IndexSet<int>          &Lambda) const
 {
-    static RealDenseVector      r, Aw, AtAw, Aw_, AtAw_;
+    std::cerr << "BEGIN: grow" << std::endl;
+    
+    using std::sqrt;
+    
+    static RealDenseVector      r, Aw, AtAw;
     static IntegerDenseVector   rAbsSorted;
-    double                      rNorm;
-    double                      rLambdaNormSquare;
+    double                      rNorm = 0;
+    double                      rLambdaNormSquare = 0;
 
     double zeta = 2*omega*nu_/(1-omega);
     /*
@@ -44,42 +49,29 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 //
 //      r = RHS(zeta/2) - APPLY(w, zeta/2)
 //
-        //MyApply<Operator, PrecondId>  A(opA, Id, zeta/2000000000000);
-        double tol = std::numeric_limits<double>::epsilon();
-        MyApply<Operator, PrecondId>  A(opA, Id, tol);
-
         rhs.filter(zeta/2, r);
+
+#       ifdef  USE_APPLY
+        MyApply<Operator, PrecondId>  A(opA, Id, zeta/2);
+
         Aw   = A*w;
         AtAw = transpose(A)*Aw;
         r -= AtAw;
+#       else
 
-        //std::cerr << "Aw = " << Aw << std::endl;
-        /*
-
-        Aw_   = opA*w;
-        AtAw_ = transpose(opA)*Aw_;
-        r    -= AtAw_;
-
-        //std::cerr << "Aw_ = " << Aw_ << std::endl;
-
-        Aw_   -= Aw;
-        AtAw_ -= AtAw;
-        //std::cerr << "diff(Aw) = " << Aw_ << std::endl;
-        std::cerr << "diff(AtAw) = " << AtAw_ << std::endl;
-        */
-
-        // std::cerr << "r = " << r << std::endl;
+        Aw   = opA*w;
+        AtAw = transpose(opA)*Aw;
+        r    -= AtAw;
+#       endif
 
         rNorm = sqrt(r*r);
         nu    = rNorm + zeta;
 
-        /*
-        std::cerr << "nu =    " << nu << std::endl;
-        std::cerr << "omega = " << omega << std::endl;
-        std::cerr << "rNorm = " << rNorm << std::endl;
+        std::cerr << "rNorm =       " << rNorm << std::endl;
+        std::cerr << "zeta =        " << zeta << std::endl;
+        std::cerr << "nu =          " << nu << std::endl;
+        std::cerr << "omega =       " << omega << std::endl;
         std::cerr << "omega*rNorm = " << omega*rNorm << std::endl;
-        std::cerr << "zeta =  " << zeta << std::endl;
-        */
 
         if ((nu <= epsilon) || (zeta <= omega*rNorm)) {
             break;
@@ -103,6 +95,10 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
         for (it=Lambda.begin(); it!=Lambda.end(); ++it) {
             rLambdaNormSquare += pow(r(*it), 2);
         }
+
+        std::cerr << "residual sqr-norm of r on old set: rLambdaNormSquare ="
+                  << rLambdaNormSquare
+                  << std::endl;
 
 //
 //      If necessary: Increase index set Lambda until
@@ -138,9 +134,13 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
                 }
             }
             // std::cerr << "Lambda.size() = " << Lambda.size() << std::endl;
+            std::cerr << "residual sqr-norm of r on new set: rLambdaNormSquare ="
+                      << rLambdaNormSquare
+                      << std::endl;
         }
 
     }
+    std::cerr << "END: grow" << std::endl;
 }
 
 template <typename Operator, typename Rhs, typename Precond>
@@ -151,7 +151,10 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
                                          double                 delta,
                                          double                 epsilon) const
 {
+    std::cerr << "BEGIN: galsolve" << std::endl;
+
     using namespace std;
+
 
     const int N = Lambda.size();
 
@@ -159,53 +162,43 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
         return;
     }
 
-    Precond        P;
-    RealGeMatrix   B;
-    static int     k = 0;
+    RealDenseVector  Aw, AtAw, r, x;
+    Precond          P;
+    RealGeMatrix     B;
+    static int       k = 0;
 
     myRestrict(opA, P, Lambda, k, B, epsilon);
-
     std::cerr << "galsolve: k = " << k << std::endl;
-    std::cerr.precision(20);
-    //std::cerr << "galsolve: B = " << B << std::endl;
-    //std::cerr << "galsolve: P = " << P << std::endl;
 
+#   ifdef  USE_APPLY
 
-    //MyApply<Operator, PrecondId>  A(opA, Id, zeta/2000000000000);
-    double tol = std::numeric_limits<double>::epsilon();
-    MyApply<Operator, PrecondId>  A(opA, Id, tol);
+    MyApply<Operator, PrecondId>  A(opA, Id, zeta/3);
 
-    RealDenseVector Aw, AtAw;
-
-    //std::cerr << "w = " << w << std::endl;
 
     Aw = A*w;
-    //Aw = opA*w;
-
-    //std::cerr << "Aw = " << Aw << std::endl;
-
     AtAw = transpose(A)*Aw;
-    //AtAw = transpose(opA)*Aw;
 
-    //std::cerr << "AtAw = " << AtAw << std::endl;
-    //std::cerr << "g = " << g << std::endl;
+#   else
 
-    RealDenseVector r;
+    Aw   = opA*w;
+    AtAw = transpose(opA)*Aw;
+
+#   endif
+
     myRestrict(g, Lambda, r);
     myRestrictSub(AtAw, Lambda, r);
 
     std::cerr << "galsolve: r = " << r << std::endl;
 
-    RealDenseVector x(B.numCols());
-    //std::cerr << "START: lawa::cg(B, x, r, epsilon, 10*N*N);" << std::endl;
+    x.engine().resize(B.numCols());
     int numIt = lawa::cg(B, x, r);
-    //int numIt = lawa::cg(B, x, r, epsilon/3000000000, 10*N*N);
-    std::cerr << "numIt = " << numIt << std::endl;
-    //std::cerr << "END: lawa::cg(B, x, r, epsilon, 10*N*N);" << std::endl;
-
-    std::cerr << "x = " << x << std::endl;
 
     myExpandAdd(x, Lambda, w);
+
+    std::cerr << "numIt = " << numIt << std::endl;
+    std::cerr << "x = " << x << std::endl;
+
+    std::cerr << "END: galsolve" << std::endl;
 }
 
 template <typename Operator, typename Rhs, typename Precond>
