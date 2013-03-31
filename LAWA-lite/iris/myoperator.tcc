@@ -7,14 +7,15 @@
 namespace lawa {
 
 template <typename T>
-MyOperator<T>::MyOperator(int d, int d_, int jMax)
+MyOperator<T>::MyOperator(int d, int d_, int jMaxV, int jMaxU)
     : U(d, d_), V(d, d_),
-      j0(std::min(U.j0(), V.j0())), j1(jMax),
-      KU(U.getFirstAbsoluteIndex(j0-1), U.getLastAbsoluteIndex(j1)),
-      KV(V.getFirstAbsoluteIndex(j0-1), V.getLastAbsoluteIndex(j1)),
+      j0(std::min(U.j0(), V.j0())), j1V(jMaxV), j1U(jMaxU),
+      KU(U.getFirstAbsoluteIndex(j0-1), U.getLastAbsoluteIndex(j1U)),
+      KV(V.getFirstAbsoluteIndex(j0-1), V.getLastAbsoluteIndex(j1V)),
       CA(1)
 {
-    assert(jMax>=j0);
+    assert(jMaxV>=j0);
+    assert(jMaxU>=j0);
 
     V.basisRight.enforceBoundaryCondition<lawa::DirichletBC>();
     V.basisLeft.enforceBoundaryCondition<lawa::DirichletBC>();
@@ -45,7 +46,7 @@ template <typename T>
 int
 MyOperator<T>::lastRow() const
 {
-    return V.getLastAbsoluteIndex(j1);
+    return V.getLastAbsoluteIndex(j1V);
 }
 
 template <typename T>
@@ -66,7 +67,7 @@ template <typename T>
 int
 MyOperator<T>::lastCol() const
 {
-    return U.getLastAbsoluteIndex(j1);
+    return U.getLastAbsoluteIndex(j1U);
 }
 
 template <typename T>
@@ -163,14 +164,18 @@ MyOperator<T>::inRow_lastNonZeroWithLevel(int row, int j) const
 
 template <typename T>
 void
-MyOperator<T>::densify(RealGeMatrix &MA, int jMax, bool brute) const
+MyOperator<T>::densify(RealGeMatrix &MA, int jMaxV, int jMaxU, bool brute) const
 {
-    if (jMax<j0-1) {
-        jMax = j1;
+    if (jMaxV<j0-1) {
+        jMaxV = j1V;
+    }
+    if (jMaxU<j0-1) {
+        jMaxU = j1U;
     }
 
-    int r1 = lastRowWithLevel(jMax);
-    int c1 = lastColWithLevel(jMax);
+
+    int r1 = lastRowWithLevel(jMaxV);
+    int c1 = lastColWithLevel(jMaxU);
 
     MA.engine().resize(r1, c1);
 
@@ -184,7 +189,7 @@ MyOperator<T>::densify(RealGeMatrix &MA, int jMax, bool brute) const
 
         } else {
 
-            for (int j=j0-1; j<=jMax; ++j) {
+            for (int j=j0-1; j<=jMaxV; ++j) {
                 int _r0 = inCol_firstNonZeroWithLevel(c, j);
                 int _r1 = inCol_lastNonZeroWithLevel(c, j);
 
@@ -195,7 +200,7 @@ MyOperator<T>::densify(RealGeMatrix &MA, int jMax, bool brute) const
 
         }
     }
-    
+
 }
 
 template <typename T>
@@ -236,6 +241,14 @@ mv(Transpose transA, double alpha,
    double beta,
    DenseVector<VY> &y)
 {
+    if (y.length()==0) {
+        if (transA==NoTrans) {
+            y.engine().resize(A.numRows(), 1);
+        } else {
+            y.engine().resize(A.numCols(), 1);
+        }
+    }
+
 #   ifndef NDEBUG
     assert(x.firstIndex()==1);
     assert(y.firstIndex()==1);
@@ -243,6 +256,8 @@ mv(Transpose transA, double alpha,
         assert(A.numRows()==y.length());
         assert(A.numCols()==x.length());
     } else if (transA==Trans) {
+        std::cerr << "x.length() = " << x.length() << std::endl;
+        std::cerr << "y.length() = " << y.length() << std::endl;
         assert(A.numRows()==x.length());
         assert(A.numCols()==y.length());
     } else {
@@ -252,11 +267,11 @@ mv(Transpose transA, double alpha,
 
     std::cerr << "DenseVector = MyOperator * DenseVector" << std::endl;
 
-    if (transA==NoTrans) {
+    for (int r=1; r<=y.length(); ++r) {
+        y(r) *= beta;
+    }
 
-        for (int r=1; r<=y.length(); ++r) {
-            y(r) *= beta;
-        }
+    if (transA==NoTrans) {
 
         long skip, nnz, skipTotal, nnzTotal;
         for (int c=1; c<=x.length(); ++c) {
@@ -264,11 +279,11 @@ mv(Transpose transA, double alpha,
             nnz  = 0;
 
             //std::cerr << c << "  ";
-            for (int j=A.j0; j<=A.j1; ++j) {
+            for (int j=A.j0-1; j<=A.j1V; ++j) {
 
                 int r0 = A.inCol_firstNonZeroWithLevel(c, j);
                 int r1 = A.inCol_lastNonZeroWithLevel(c, j);
-                
+
                 //std::cerr << r0 << ":" << (r1-r0+1) << " ";
 
                 for (int r=r0; r<=r1; ++r) {
@@ -294,8 +309,43 @@ mv(Transpose transA, double alpha,
                   << ",  nnzTotal = " << nnzTotal
                   << ")" << std::endl;
     } else {
-        assert(0);
-    }
+
+        long skip, nnz, skipTotal, nnzTotal;
+        for (int r=1; r<=x.length(); ++r) {
+            skip = 0;
+            nnz  = 0;
+
+            //std::cerr << r << "  ";
+            for (int j=A.j0-1; j<=A.j1U; ++j) {
+
+                int c0 = A.inRow_firstNonZeroWithLevel(r, j);
+                int c1 = A.inRow_lastNonZeroWithLevel(r, j);
+
+                //std::cerr << r0 << ":" << (r1-r0+1) << " ";
+
+                for (int c=c0; c<=c1; ++c) {
+                    const T value = A(r,c);
+                    y(c) += alpha*value*x(r);
+                    if (std::abs(value)<100*std::numeric_limits<T>::epsilon()) {
+                        ++skip;
+                        ++skipTotal;
+                    } else {
+                        ++nnz;
+                        ++nnzTotal;
+                    }
+                }
+
+            }
+            /*
+            std::cerr << " (skip = " << skip
+                      << ",  nnz = " << nnz
+                      << ")" << std::endl;
+            */
+        }
+        std::cerr << " (skipTotal = " << skipTotal
+                  << ",  nnzTotal = " << nnzTotal
+                  << ")" << std::endl;
+     }
 }
 
 } // namespace flens

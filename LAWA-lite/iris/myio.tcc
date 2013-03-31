@@ -22,7 +22,30 @@ operator<<(std::ostream &out,
         }
     }
     out << B;
-    
+
+    return out;
+}
+
+template <typename T>
+std::ostream &
+operator<<(std::ostream &out, const MyOperator<T> &opA)
+{
+    typedef flens::GeMatrix<FullStorage<double, ColMajor> >  RealGeMatrix;
+
+    RealGeMatrix A;
+
+    opA.densify(A, opA.j1V, opA.j1U);
+
+    out << A;
+
+    return out;
+}
+
+template <typename T>
+std::ostream &
+operator<<(std::ostream &out, const MyPrecond3<T> &P)
+{
+    out << P.values;
     return out;
 }
 

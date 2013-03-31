@@ -9,7 +9,7 @@ template <typename Operator>
 struct MyPrecond2
 {
     typedef flens::DenseVector<Array<double> >      RealDenseVector;
-    
+
     MyPrecond2(const Operator &A);
 
     double

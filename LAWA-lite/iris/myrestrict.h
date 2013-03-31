@@ -13,6 +13,15 @@ template <typename Operator, typename Precond, typename TI, typename CRS>
                const IndexSet<TI>   &Lambda,
                SparseGeMatrix<CRS>  &B);
 
+template <typename Operator, typename Precond, typename TI, typename MB>
+    void
+    myRestrict(const Operator       &A,
+               Precond              &P,
+               const IndexSet<TI>   &Lambda,
+               int                  &k,
+               GeMatrix<MB>         &B,
+               double               eps);
+
 template <typename VX, typename TI, typename VY>
     void
     myRestrict(const DenseVector<VX>  &x,

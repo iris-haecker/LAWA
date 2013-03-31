@@ -31,56 +31,164 @@ g(double t)
     const int l  = 1;
     const int u0 = 0;
 
-    return sin(2*M_PI*l*t) + 2*M_PI*l*cos(2*M_PI*l*t) + u0;
+    return 1;
+    //return sin(2*M_PI*l*t);
+
+    // return sin(2*M_PI*l*t) + 2*M_PI*l*cos(2*M_PI*l*t) + u0;
 }
 
 int
 main()
 {
-    typedef flens::DenseVector<Array<double> >              RealDenseVector;
-    typedef flens::DenseVector<Array<int> >                 IntDenseVector;
-    typedef MyOperator<double>                              Operator;
-    typedef MyPrecond2<Operator>                            Precond;
-    typedef MyRhs2<double, Precond>                         Rhs;
-    //typedef MyGHS2<Operator, Rhs, Precond>                  GHS;
-    typedef MyEval<double>                                  Eval;
+    typedef flens::GeMatrix<FullStorage<double, ColMajor> >  RealGeMatrix;
+    typedef flens::DenseVector<Array<double> >               RealDenseVector;
+    typedef flens::DenseVector<Array<int> >                  IntDenseVector;
+    typedef MyOperator<double>                               Operator;
+    typedef MyPrecond3<double>                               Precond;
+    typedef MyPrecondId<double>                              PrecondId;
+    typedef MyRhs2<double, PrecondId>                        Rhs;
+    typedef MyGHS2<Operator, Rhs, Precond>                   GHS;
+    typedef MyEval<double>                                   Eval;
 
     const int d  = 3;
     const int d_ = 5;
 
-    const int    jMax = 14;
-    const double eps = 0.0000001;
-    const int    numOfIterations = 40;
+    const int    jMaxV = 9;
+    const int    jMaxU = 9;
+    const double eps = 0.000000000001;
+    const int    numOfIterations = 400;
 
-    std::cerr << "Hello1" << std::endl;
+    Operator              operatorA(d, d_, jMaxV, jMaxU);
+    Precond               P;
+    PrecondId             Id;
+    Rhs                   rhs(Function<double>(g), operatorA, Id, eps);
 
-    Operator              operatorA(d, d_, jMax);
-
-    std::cerr << "Hello2" << std::endl;
-
-    Precond               P(operatorA);
-
-    std::cerr << "Hello3" << std::endl;
-
-    Rhs                   rhs(Function<double>(g), operatorA, P, eps);
-
-    std::cerr << "Hello4" << std::endl;
-
-/*
     RealDenseVector       w;
 
+    w.engine().resize(operatorA.numCols());
 
     double  alpha = 0.4;
     double  omega = 0.012618;
     double  gamma = 0.009581;
     double  theta = 2./7;
 
-    alpha = 0.9;
+    alpha = 0.75;
 
-    GHS     ghs(operatorA, rhs, P, alpha, omega, gamma, theta);
+    std::cerr.precision(20);
+    std::cerr << "rhs = " << rhs.rhsData << std::endl;
+    std::cerr.precision(20);
+    //std::cerr << "operatorA = " << operatorA << std::endl;
+
+    GHS     ghs(operatorA, rhs, alpha, omega, gamma, theta);
+
+/*
+    double           nu_kM1 = rhs.norm;
+    double           nu_k;
+    IndexSet<int>    Lambda_kP1;
+    RealGeMatrix     B;
+    RealDenseVector  g_kP1;
+
+    rhs.filter(0, g_kP1);
+
+//
+//  GROW & GALSOLVE
+//
+    std::cerr << std::endl
+              << "-------------------------------" << std::endl
+              << "GROW & GALSOLVE" << std::endl
+              << "-------------------------------" << std::endl;
+
+    ghs.grow(w, theta*nu_kM1, eps, nu_k, Lambda_kP1);
+
+    std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
+
+    ghs.galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+
+    std::cerr << "w = " << w << std::endl;
+
+
+//
+//  GROW & GALSOLVE
+//
+    std::cerr << std::endl
+              << "-------------------------------" << std::endl
+              << "GROW & GALSOLVE" << std::endl
+              << "-------------------------------" << std::endl;
+
+    ghs.grow(w, theta*nu_kM1, eps, nu_k, Lambda_kP1);
+
+    std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
+
+    ghs.galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+
+    std::cerr << "w = " << w << std::endl;
+
+//
+//  GROW & GALSOLVE
+//
+    std::cerr << std::endl
+              << "-------------------------------" << std::endl
+              << "GROW & GALSOLVE" << std::endl
+              << "-------------------------------" << std::endl;
+
+    ghs.grow(w, theta*nu_kM1, eps, nu_k, Lambda_kP1);
+
+    std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
+
+    ghs.galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+
+    std::cerr << "w = " << w << std::endl;
+
+//
+//  GROW & GALSOLVE
+//
+    std::cerr << std::endl
+              << "-------------------------------" << std::endl
+              << "GROW & GALSOLVE" << std::endl
+              << "-------------------------------" << std::endl;
+
+    ghs.grow(w, theta*nu_kM1, eps, nu_k, Lambda_kP1);
+
+    std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
+
+    ghs.galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+
+    std::cerr << "w = " << w << std::endl;
+
+//
+//  GROW & GALSOLVE
+//
+    std::cerr << std::endl
+              << "-------------------------------" << std::endl
+              << "GROW & GALSOLVE" << std::endl
+              << "-------------------------------" << std::endl;
+
+    ghs.grow(w, theta*nu_kM1, eps, nu_k, Lambda_kP1);
+
+    std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
+
+    ghs.galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+
+    std::cerr << "w = " << w << std::endl;
+
+*/
+
+
+/*
+
+    ghs.galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+
+    std::cerr << "2) after galsolve:" << std::endl;
+    std::cerr << "w = " << w << std::endl;
+
+    ghs.grow(w, theta*nu_kM1, eps, nu_k, Lambda_kP1);
+
+    std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
+*/
 
     ghs.solve(rhs.norm, eps, numOfIterations, w);
 
+/*
     Eval sol(operatorA.U, w);
 
     sol.dump(1000, "ghs2.dat");

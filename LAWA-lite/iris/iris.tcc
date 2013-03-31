@@ -7,12 +7,15 @@
 #include <iris/myeval.tcc>
 #include <iris/myexpand.tcc>
 #include <iris/myghs.tcc>
+#include <iris/myghs2.tcc>
 #include <iris/myintegral.tcc>
 #include <iris/myio.tcc>
 #include <iris/mynnz.tcc>
 #include <iris/myoperator.tcc>
+#include <iris/myprecondid.tcc>
 #include <iris/myprecond.tcc>
 #include <iris/myprecond2.tcc>
+#include <iris/myprecond3.tcc>
 #include <iris/myrestrict.tcc>
 #include <iris/myrhs.tcc>
 #include <iris/myrhs2.tcc>

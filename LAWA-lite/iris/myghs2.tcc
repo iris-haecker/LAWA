@@ -1,6 +1,7 @@
 #ifndef IRIS_MYGHS2_TCC
 #define IRIS_MYGHS2_TCC 1
 
+#include <limits>
 #include <map>
 #include <iris/iris.h>
 
@@ -9,12 +10,11 @@ namespace lawa {
 template <typename Operator, typename Rhs, typename Precond>
 MyGHS2<Operator, Rhs, Precond>::MyGHS2(const Operator  &_opA,
                                        const Rhs       &_rhs,
-                                       const Precond   &_P,
                                        double          _alpha,
                                        double          _omega,
                                        double          _gamma,
                                        double          _theta)
-    : opA(_opA), rhs(_rhs), P(_P), alpha(_alpha), omega(_omega), gamma(_gamma),
+    : opA(_opA), rhs(_rhs), alpha(_alpha), omega(_omega), gamma(_gamma),
       theta(_theta)
 {
 }
@@ -27,9 +27,10 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
                                      double                 &nu,
                                      IndexSet<int>          &Lambda) const
 {
-    static RealDenseVector      r, Aw;
+    static RealDenseVector      r, Aw, AtAw, Aw_, AtAw_;
     static IntegerDenseVector   rAbsSorted;
-    double rNorm, rLambdaNormSquare;
+    double                      rNorm;
+    double                      rLambdaNormSquare;
 
     double zeta = 2*omega*nu_/(1-omega);
     /*
@@ -43,10 +44,29 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 //
 //      r = RHS(zeta/2) - APPLY(w, zeta/2)
 //
-        MyApply<Operator, Precond>  A(opA, P, zeta/2);
+        //MyApply<Operator, PrecondId>  A(opA, Id, zeta/2000000000000);
+        double tol = std::numeric_limits<double>::epsilon();
+        MyApply<Operator, PrecondId>  A(opA, Id, tol);
+
         rhs.filter(zeta/2, r);
-        Aw = A*w;
-        r -= transpose(A)*Aw;
+        Aw   = A*w;
+        AtAw = transpose(A)*Aw;
+        r -= AtAw;
+
+        //std::cerr << "Aw = " << Aw << std::endl;
+        /*
+
+        Aw_   = opA*w;
+        AtAw_ = transpose(opA)*Aw_;
+        r    -= AtAw_;
+
+        //std::cerr << "Aw_ = " << Aw_ << std::endl;
+
+        Aw_   -= Aw;
+        AtAw_ -= AtAw;
+        //std::cerr << "diff(Aw) = " << Aw_ << std::endl;
+        std::cerr << "diff(AtAw) = " << AtAw_ << std::endl;
+        */
 
         // std::cerr << "r = " << r << std::endl;
 
@@ -67,11 +87,9 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 
     } while (true);
 
-    /*
     std::cerr << "r = " << r << std::endl;
     std::cerr << "rNorm = " << rNorm << std::endl;
     std::cerr << "nu = " << nu << std::endl;
-    */
 
     if (nu>epsilon) {
         mySupport(w, Lambda);
@@ -90,14 +108,14 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 //      If necessary: Increase index set Lambda until
 //                    || P_Lambda r||^2  >=  alpha ||r||^2
 //
-        if (rLambdaNormSquare<pow(alpha*rNorm, 2)) {
+        if (rLambdaNormSquare<alpha*pow(rNorm, 2)) {
 
 //
 //          We should use a bucket sort here
 //
-            std::cerr << "START: myAbsSort(r, rAbsSorted);" << std::endl;
+            //std::cerr << "START: myAbsSort(r, rAbsSorted);" << std::endl;
             myAbsSort(r, rAbsSorted);
-            std::cerr << "END: myAbsSort(r, rAbsSorted);" << std::endl;
+            //std::cerr << "END: myAbsSort(r, rAbsSorted);" << std::endl;
             // std::cerr << "rAbsSorted = " << rAbsSorted << std::endl;
 
             for (int k=1; k<=rAbsSorted.length(); ++k) {
@@ -112,14 +130,14 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 //              Update Lambda and || P_Lambda r||^2
 //
                 Lambda.insert(rAbsSorted(k));
-                std::cerr << "insert: " << rAbsSorted(k) << std::endl;
-                
+                // std::cerr << "insert: " << rAbsSorted(k) << std::endl;
+
                 rLambdaNormSquare += pow(r(rAbsSorted(k)), 2);
-                if (rLambdaNormSquare>=pow(alpha*rNorm,2)) {
+                if (rLambdaNormSquare>=alpha*pow(rNorm,2)) {
                     break;
                 }
             }
-            std::cerr << "Lambda.size() = " << Lambda.size() << std::endl;
+            // std::cerr << "Lambda.size() = " << Lambda.size() << std::endl;
         }
 
     }
@@ -141,29 +159,51 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
         return;
     }
 
-    SparseGeMatrix<CRS<double, CRS_General> >  B;
-    myRestrict(opA, P, Lambda, B);
+    Precond        P;
+    RealGeMatrix   B;
+    static int     k = 0;
+
+    myRestrict(opA, P, Lambda, k, B, epsilon);
+
+    std::cerr << "galsolve: k = " << k << std::endl;
+    std::cerr.precision(20);
+    //std::cerr << "galsolve: B = " << B << std::endl;
+    //std::cerr << "galsolve: P = " << P << std::endl;
 
 
-    MyApply<Operator, Precond>  A(opA, P, epsilon/3);
-    RealDenseVector Aw;
+    //MyApply<Operator, PrecondId>  A(opA, Id, zeta/2000000000000);
+    double tol = std::numeric_limits<double>::epsilon();
+    MyApply<Operator, PrecondId>  A(opA, Id, tol);
+
+    RealDenseVector Aw, AtAw;
+
+    //std::cerr << "w = " << w << std::endl;
 
     Aw = A*w;
+    //Aw = opA*w;
+
+    //std::cerr << "Aw = " << Aw << std::endl;
+
+    AtAw = transpose(A)*Aw;
+    //AtAw = transpose(opA)*Aw;
+
+    //std::cerr << "AtAw = " << AtAw << std::endl;
+    //std::cerr << "g = " << g << std::endl;
 
     RealDenseVector r;
     myRestrict(g, Lambda, r);
-    myRestrictSub(Aw, Lambda, r);
+    myRestrictSub(AtAw, Lambda, r);
+
+    std::cerr << "galsolve: r = " << r << std::endl;
 
     RealDenseVector x(B.numCols());
-    std::cerr << "START: lawa::cg(B, x, r, epsilon, 10*N);" << std::endl;
-    lawa::cg(B, x, r, epsilon, 10*N);
-    std::cerr << "END: lawa::cg(B, x, r, epsilon, 10*N);" << std::endl;
+    //std::cerr << "START: lawa::cg(B, x, r, epsilon, 10*N*N);" << std::endl;
+    int numIt = lawa::cg(B, x, r);
+    //int numIt = lawa::cg(B, x, r, epsilon/3000000000, 10*N*N);
+    std::cerr << "numIt = " << numIt << std::endl;
+    //std::cerr << "END: lawa::cg(B, x, r, epsilon, 10*N*N);" << std::endl;
 
-    /*
-    std::cerr << "B = " << B << std::endl;
-    std::cerr << "r = " << r << std::endl;
     std::cerr << "x = " << x << std::endl;
-    */
 
     myExpandAdd(x, Lambda, w);
 }
@@ -189,6 +229,9 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
 
         std::cerr << "k = " << k
                   << ": nu_k = " << nu_k
+                  << std::endl;
+        std::cerr << "Lambda_kP1 = "
+                  << Lambda_kP1
                   << std::endl;
 
         if (nu_k<=epsilon) {

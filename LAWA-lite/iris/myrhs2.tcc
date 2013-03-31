@@ -20,8 +20,6 @@ MyRhs2<T, Precond>::MyRhs2(const Function<T>    &f,
     MyRhsIntegral<T>                rhsIntegral(f, myOperator.V);
     DenseVector<Array<T> >          b;
 
-    std::cerr << "START: MyRhs2" << std::endl;
-
 //
 //  Eval right-hand side b
 //
@@ -51,7 +49,11 @@ MyRhs2<T, Precond>::MyRhs2(const Function<T>    &f,
 //
     MyApply<MyOperator<T>, Precond> A(myOperator, P, norm*eps);
     rhsData = transpose(A)*b;
-    std::cerr << "computed transpose(A)*b" << std::endl;
+    //rhsData = myOperator*b;
+    //rhsData = transpose(myOperator)*b;
+    //std::cerr << "computed transpose(A)*b" << rhsData << std::endl;
+    //std::cerr << "A.numRows() = " << A.numRows() << std::endl;
+    //std::cerr << "A.numCols() = " << A.numCols() << std::endl;
 
 //
 //  Apply the preconditioner and compute the norm of P*A^T*b

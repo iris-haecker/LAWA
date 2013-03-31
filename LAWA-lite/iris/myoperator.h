@@ -13,7 +13,7 @@ struct MyOperator
     typedef T                                           ElementType;
     typedef int                                         IndexType;
 
-    MyOperator(int d, int d_, int _jMax);
+    MyOperator(int d, int d_, int _jMaxV, int _jMaxU);
 
     T
     operator()(int row, int col) const;
@@ -70,14 +70,16 @@ struct MyOperator
     inRow_lastNonZeroWithLevel(int row, int j) const;
 
     void
-    densify(RealGeMatrix &MA, int jMax = -1, bool brute = false) const;
+    densify(RealGeMatrix &MA,
+            int jMaxV = -1, int jMaxU = -1,
+            bool brute = false) const;
 
     template <typename CRS>
         void
         restriction(const IndexSet<int> &indices, SparseGeMatrix<CRS> &A) const;
 
     MyBasis<double>  U, V;
-    int              j0, j1;
+    int              j0, j1V, j1U;
     Range<int>       KU, KV;
     double           CA;
 };

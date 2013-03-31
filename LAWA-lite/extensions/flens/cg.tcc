@@ -135,16 +135,16 @@ pcg(const Prec &P, const MA &A, VX &x, const VB &b,
     if (x.length()!=A.numCols()) {
         x.engine().resize(A.numCols());
     }
-    
+
     r.engine().resize(b.length(), 1);
     rHat.engine().resize(r.length(), 1);
     p.engine().resize(r.length(), 1);
     Ap.engine().resize(A.numRows(), 1);
-    
+
     r = b - A*x;
     if(r*r == 0){
         return 0;
-    }    
+    }
     rHat = transpose(P)*r;
     p = P*rHat;
     rHatq = rHat*rHat;
@@ -160,7 +160,7 @@ pcg(const Prec &P, const MA &A, VX &x, const VB &b,
         p += P*rHat;
         pNormSquare = p*p;
         #ifdef SOLVER_DEBUG
-            std::cerr << "k = " << k << ", rho = " <<  sqrt(pNormSquare) 
+            std::cerr << "k = " << k << ", rho = " <<  sqrt(pNormSquare)
                 << std::endl;
         #endif
 

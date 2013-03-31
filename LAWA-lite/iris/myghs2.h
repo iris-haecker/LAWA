@@ -2,18 +2,20 @@
 #define IRIS_MYGHS2_H 1
 
 #include <iris/mybasis.h>
+#include <iris/myprecondid.h>
 
 namespace lawa {
 
 template <typename Operator, typename Rhs, typename Precond>
 struct MyGHS2
 {
-    typedef flens::DenseVector<Array<double> >      RealDenseVector;
-    typedef flens::DenseVector<Array<int> >         IntegerDenseVector;
+    typedef flens::GeMatrix<FullStorage<double, ColMajor> > RealGeMatrix;
+    typedef flens::DenseVector<Array<double> >              RealDenseVector;
+    typedef flens::DenseVector<Array<int> >                 IntegerDenseVector;
+    typedef MyPrecondId<double>                             PrecondId;
 
     MyGHS2(const Operator  &opA,
            const Rhs       &rhs,
-           const Precond   &P,
            double          alpha,
            double          omega,
            double          gamma,
@@ -41,8 +43,8 @@ struct MyGHS2
 
     const Operator  &opA;
     const Rhs       &rhs;
-    const Precond   &P;
     const double    alpha, omega, gamma, theta;
+    const PrecondId Id;
 };
 
 } // namespace lawa

@@ -10,7 +10,7 @@ namespace lawa {
 
 template <typename Operator, typename Precond>
 MyApply<Operator, Precond>::MyApply(const Operator  &OperatorA,
-                                    const Precond   &_P, 
+                                    const Precond   &_P,
                                     double          _eps)
     : A(OperatorA), P(_P), eps(_eps)
 {
@@ -59,8 +59,6 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
 //
 //  Sort v
 //
-    std::cerr << "APPLY: Start" << std::endl;
-
     static IntegerDenseVector  vSorted;
     static IndexSet<int>       vSupport;
 
@@ -78,7 +76,7 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
 
     maxBin = max(min(maxBin, k), 0);
 
-    std::cerr << "APPLY: Sorted (N = " << N << ")" << std::endl;
+    //std::cerr << "APPLY: Sorted (N = " << N << ")" << std::endl;
 
 
     if (trans==NoTrans) {
@@ -92,10 +90,10 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
 
                 int L  = A.getLevelOfCol(vSorted(p));
 
-                int j0 = max(A.j0, L-(k-bin));
-                int j1 = min(A.j1, L+(k-bin));
+                int j0 = max(A.j0-1, L-(k-bin));
+                int j1 = min(A.j1V, L+(k-bin));
 
-                for (int j=j0; j<j1; ++j) {
+                for (int j=j0; j<=j1; ++j) {
 
                     int r0 = A.inCol_firstNonZeroWithLevel(vSorted(p), j);
                     int r1 = A.inCol_lastNonZeroWithLevel(vSorted(p), j);
@@ -116,6 +114,7 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
             int p0 = 1<<bin;
             int p1 = min(1<<(bin+1), N+1);
 
+            /*
             std::cerr << "APPLY: bin = " << bin
                       << ", k - bin = " << k - bin
                       << " (maxBin " << maxBin
@@ -123,6 +122,7 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
                       << ", p0 = " << p0
                       << ", p1 = " << p1
                       << ")" << std::endl;
+            */
 
 
             for (int p=p0; p<p1; ++p) {
@@ -133,10 +133,17 @@ MyApply<Operator, Precond>::operator()(Transpose              trans,
 
                 int L  = A.getLevelOfRow(vSorted(p));
 
-                int j0 = max(A.j0, L-(k-bin));
-                int j1 = min(A.j1, L+(k-bin));
+                int j0 = max(A.j0-1, L-(k-bin));
+                int j1 = min(A.j1U, L+(k-bin));
 
-                for (int j=j0; j<j1; ++j) {
+                /*
+                std::cerr << "j0 = " << j0
+                          << ", A.j0 = " << A.j0
+                          << ", L = " << L
+                          << std::endl;
+                */
+
+                for (int j=j0; j<=j1; ++j) {
 
                     int c0 = A.inRow_firstNonZeroWithLevel(vSorted(p), j);
                     int c1 = A.inRow_lastNonZeroWithLevel(vSorted(p), j);
@@ -185,9 +192,9 @@ MyApply<Operator, Precond>::computeK(double                    eps,
             semiNorm = tmp;
         }
     }
-    
+
     norm += semiNorm;
-    
+
     int k_eps = double(1)/s * log(norm/eps) / log(double(2));
 
 //

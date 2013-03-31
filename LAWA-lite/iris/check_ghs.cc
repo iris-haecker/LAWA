@@ -54,7 +54,7 @@ main()
     const double eps = 0.0000001;
     const int    numOfIterations = 40;
 
-    Operator              operatorA(d, d_, jMax);
+    Operator              operatorA(d, d_, jMax, jMax);
     Precond               P(operatorA);
     Rhs                   rhs(Function<double>(g), operatorA, P);
     RealDenseVector       w;
@@ -76,4 +76,8 @@ main()
     sol.dump(1000, "ghs.dat");
 
 
+    std::fstream   out("ghs_sol_raw.dat", std::fstream::out);
+    for (int k=w.firstIndex(); k<=w.lastIndex(); ++k) {
+        out << w(k) << " ";
+    }
 }

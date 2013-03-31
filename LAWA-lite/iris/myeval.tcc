@@ -30,7 +30,7 @@ void
 MyEval<T>::dump(int N, const char *file) const
 {
     std::fstream   out(file, std::fstream::out);
-    
+
     for (int i=0; i<=N; ++i) {
         const double x = double(i)/N;
         out << x << " " << operator()(x) << std::endl;
