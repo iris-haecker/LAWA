@@ -41,6 +41,13 @@ struct MyGHS2
           int              numOfIterations,
           RealDenseVector  &w) const;
 
+    void
+    solve(double           nuM1,
+          double           epsilon,
+          int              numOfIterations,
+          RealDenseVector  &w,
+          Function<double> &sol) const;
+
     const Operator  &opA;
     const Rhs       &rhs;
     const double    alpha, omega, gamma, theta;

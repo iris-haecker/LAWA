@@ -37,6 +37,128 @@ MyEval<T>::dump(int N, const char *file) const
     }
 }
 
+template <typename T>
+void
+MyEval<T>::dump(int N, const Function<T> &refSol, const char *file) const
+{
+    std::fstream   out(file, std::fstream::out);
+
+    for (int i=0; i<=N; ++i) {
+        const double x = double(i)/N;
+        out << x << " " << operator()(x) << " " << refSol(x) << std::endl;
+    }
+}
+
+template <typename T>
+T
+MyEval<T>::diff_L1(int N, const Function<T> &f) const
+{
+    using std::abs;
+
+    double diff1;
+    double diff2;
+
+    for (int k=1; k<=10; ++k) {
+
+        diff1 = 0;
+        diff2 = 0;
+
+        for (int i=0; i<=2*N; ++i) {
+            const double x     = double(i)/(2*N);
+            const double value = abs(f(x) - operator()(x));
+            
+            if (i==0 || i==2*N) {
+                diff1 += 0.5*value;
+                diff2 += 0.5*value;
+                continue;
+            }
+
+            if (i%2 == 0) {
+                diff1 += value;
+            }
+            diff2 += value;
+        }
+
+        diff1 /= N;
+        diff2 /= 2*N;
+        
+        if (abs(diff1-diff2)<0.00001) {
+            break;
+        }
+    }
+    return diff2;
+}
+
+template <typename T>
+T
+MyEval<T>::diff_L2(int N, const Function<T> &f) const
+{
+    using std::pow;
+
+    double diff1;
+    double diff2;
+
+    for (int k=1; k<=10; ++k) {
+
+        diff1 = 0;
+        diff2 = 0;
+
+        for (int i=0; i<=2*N; ++i) {
+            const double x     = double(i)/(2*N);
+            const double value = pow(f(x) - operator()(x), 2);
+            
+            if (i==0 || i==2*N) {
+                diff1 += 0.5*value;
+                diff2 += 0.5*value;
+                continue;
+            }
+
+            if (i%2 == 0) {
+                diff1 += value;
+            }
+            diff2 += value;
+        }
+        diff1 /= N;
+        diff2 /= 2*N;
+
+        if (abs(diff1-diff2)<0.00001) {
+            break;
+        }
+    }
+    return diff2;
+}
+
+template <typename T>
+T
+MyEval<T>::diff_LInf(int N, const Function<T> &f) const
+{
+    using std::abs;
+    using std::max;
+
+    double diff1;
+    double diff2;
+
+    for (int k=1; k<=10; ++k) {
+
+        diff1 = 0;
+        diff2 = 0;
+
+        for (int i=0; i<=2*N; ++i) {
+            const double x     = double(i)/(2*N);
+            const double value = abs(f(x) - operator()(x));
+            
+            if (i%2 == 0) {
+                diff1 = max(diff1, value);
+            }
+            diff2 = max(diff2, value);
+        }
+
+        if (abs(diff1-diff2)<0.00001) {
+            break;
+        }
+    }
+    return diff2;
+}
 
 } // namespace lawa
 

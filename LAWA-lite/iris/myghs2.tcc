@@ -5,6 +5,7 @@
 #include <map>
 #include <iris/iris.h>
 #include <cmath>
+#include <sstream>
 
 namespace lawa {
 
@@ -60,7 +61,7 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 #       else
 
         Aw   = opA*w;
-        AtAw = transpose(opA)*Aw;
+        AtAw = Aw; // !!! transpose(opA)*Aw;
         r    -= AtAw;
 #       endif
 
@@ -164,10 +165,14 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
 
     RealDenseVector  Aw, AtAw, r, x;
     Precond          P;
-    RealGeMatrix     B;
+
+    SparseGeMatrix<CRS<double, CRS_General> >  B;
+    //RealGeMatrix     B;
     static int       k = 0;
 
-    myRestrict(opA, P, Lambda, k, B, epsilon);
+
+    myRestrict(opA, P, Lambda, B);
+    // myRestrict(opA, P, Lambda, k, B, epsilon);
     std::cerr << "galsolve: k = " << k << std::endl;
 
 #   ifdef  USE_APPLY
@@ -181,7 +186,7 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
 #   else
 
     Aw   = opA*w;
-    AtAw = transpose(opA)*Aw;
+    AtAw = Aw; // !!! transpose(opA)*Aw;
 
 #   endif
 
@@ -240,6 +245,66 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
 
     }
 }
+
+template <typename Operator, typename Rhs, typename Precond>
+void
+MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
+                                      double           epsilon,
+                                      int              numOfIterations,
+                                      RealDenseVector  &w,
+                                      Function<double> &sol) const
+{
+    double             nu_kM1 = nuM1;
+    double             nu_k;
+    RealDenseVector    g_kP1;
+    IndexSet<int>      Lambda_kP1;
+
+    if (w.length()!=opA.numCols()) {
+        w.engine().resize(opA.numCols());
+    }
+
+    for (int k=0; k<numOfIterations; ++k) {
+        grow(w, theta*nu_kM1, epsilon, nu_k, Lambda_kP1);
+
+        std::cerr << "Lambda_kP1 = "
+                  << Lambda_kP1
+                  << std::endl;
+
+        MyEval<double> eval(opA.U, w);
+
+        std::cerr << "GHS: " << std::endl
+                  << "    k =          " << k  << std::endl
+                  << "    N =          " << Lambda_kP1.size() << std::endl
+                  << "    nu_k =       " << nu_k << std::endl
+                  << "    Error-L1 =   " << eval.diff_L1(1000, sol) << std::endl
+                  << "    Error-L2 =   " << eval.diff_L2(1000, sol) << std::endl
+                  << "    Error-LInf = " << eval.diff_LInf(1000, sol) << std::endl
+                  << std::endl;
+
+        std::stringstream  filename;
+        
+        filename << "snap/snapshot_" << k << ".dat";
+        eval.dump(1000, sol, filename.str().c_str());
+
+        if (nu_k<=epsilon) {
+            break;
+        }
+
+        rhs.filter(0, g_kP1);
+
+        galsolve(Lambda_kP1, g_kP1, w, (1+gamma)*nu_k, gamma*nu_k);
+        nu_kM1 = nu_k;
+
+        // std::cerr << "w = " << w << std::endl;
+
+    }
+
+    MyEval<double> eval(opA.U, w);
+
+    
+
+}
+
 
 
 } // namespace lawa

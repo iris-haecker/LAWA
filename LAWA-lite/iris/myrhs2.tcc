@@ -52,7 +52,7 @@ MyRhs2<T, Precond>::MyRhs2(const Function<T>    &f,
     rhsData = transpose(A)*b;
 
 #   else
-    rhsData = transpose(myOperator)*b;
+    rhsData = b; // !!! transpose(myOperator)*b;
 
 #   endif
 

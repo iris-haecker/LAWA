@@ -37,6 +37,13 @@ g(double t)
     // return sin(2*M_PI*l*t) + 2*M_PI*l*cos(2*M_PI*l*t) + u0;
 }
 
+double
+sol_(double x)
+{
+    return 0.5*x*(1-x);
+}
+
+
 int
 main()
 {
@@ -50,11 +57,11 @@ main()
     typedef MyGHS2<Operator, Rhs, Precond>                   GHS;
     typedef MyEval<double>                                   Eval;
 
-    const int d  = 3;
-    const int d_ = 5;
+    const int d  = 2;
+    const int d_ = 4;
 
-    const int    jMaxV = 8;
-    const int    jMaxU = 8;
+    const int    jMaxV = 9;
+    const int    jMaxU = 9;
     const double eps = 0.000000001;
     const int    numOfIterations = 400;
 
@@ -62,15 +69,16 @@ main()
     Precond               P;
     PrecondId             Id;
     Rhs                   rhs(Function<double>(g), operatorA, Id, eps);
+    Function<double>      sol(sol_);
 
     RealDenseVector       w;
 
     w.engine().resize(operatorA.numCols());
 
-    double  alpha = 0.4;
-    double  omega = 0.012618;
-    double  gamma = 0.009581;
-    double  theta = 2./7;
+    double  alpha = 0.5;
+    double  omega = 0.001;
+    double  gamma = 0.01;
+    double  theta = 0.28;
 
     std::cerr.precision(20);
     std::cerr << "rhs = " << rhs.rhsData << std::endl;
@@ -79,7 +87,8 @@ main()
 
     GHS     ghs(operatorA, rhs, alpha, omega, gamma, theta);
 
-    ghs.solve(rhs.norm, eps, numOfIterations, w);
+    ghs.solve(rhs.norm, eps, numOfIterations, w, sol);
+
 
 
 /*
@@ -186,12 +195,6 @@ main()
 
     std::cerr << "Lambda_kP1 = " << Lambda_kP1 << std::endl;
 */
-
-
-
-    Eval sol(operatorA.U, w);
-
-    sol.dump(1000, "ghs2.dat");
 
 
 }

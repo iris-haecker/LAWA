@@ -20,6 +20,18 @@ struct MyEval
     void
     dump(int N, const char *file) const;
 
+    void
+    dump(int N, const Function<T> &refSol, const char *file) const;
+
+    T
+    diff_L1(int N, const Function<T> &f) const;
+
+    T
+    diff_L2(int N, const Function<T> &f) const;
+
+    T
+    diff_LInf(int N, const Function<T> &f) const;
+
     const CoeffVector  &u;
     const MyBasis<T>   &U;
 };
