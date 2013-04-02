@@ -30,9 +30,9 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
                                      IndexSet<int>          &Lambda) const
 {
     std::cerr << "BEGIN: grow" << std::endl;
-    
+
     using std::sqrt;
-    
+
     static RealDenseVector      r, Aw, AtAw;
     static IntegerDenseVector   rAbsSorted;
     double                      rNorm = 0;
@@ -80,7 +80,7 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 
     } while (true);
 
-    std::cerr << "r = " << r << std::endl;
+    //std::cerr << "r = " << r << std::endl;
     std::cerr << "rNorm = " << rNorm << std::endl;
     std::cerr << "nu = " << nu << std::endl;
 
@@ -193,7 +193,7 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
     myRestrict(g, Lambda, r);
     myRestrictSub(AtAw, Lambda, r);
 
-    std::cerr << "galsolve: r = " << r << std::endl;
+    //std::cerr << "galsolve: r = " << r << std::endl;
 
     x.engine().resize(B.numCols());
     int numIt = lawa::cg(B, x, r);
@@ -201,7 +201,7 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
     myExpandAdd(x, Lambda, w);
 
     std::cerr << "numIt = " << numIt << std::endl;
-    std::cerr << "x = " << x << std::endl;
+    //std::cerr << "x = " << x << std::endl;
 
     std::cerr << "END: galsolve" << std::endl;
 }
@@ -254,6 +254,8 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
                                       RealDenseVector  &w,
                                       Function<double> &sol) const
 {
+    using std::sqrt;
+
     double             nu_kM1 = nuM1;
     double             nu_k;
     RealDenseVector    g_kP1;
@@ -272,6 +274,8 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
 
         MyEval<double> eval(opA.U, w);
 
+        double errorH1 = eval.error_HNorm(opA, rhs, w, sqrt(330.0)/60.0);
+
         std::cerr << "GHS: " << std::endl
                   << "    k =          " << k  << std::endl
                   << "    N =          " << Lambda_kP1.size() << std::endl
@@ -279,10 +283,11 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
                   << "    Error-L1 =   " << eval.diff_L1(1000, sol) << std::endl
                   << "    Error-L2 =   " << eval.diff_L2(1000, sol) << std::endl
                   << "    Error-LInf = " << eval.diff_LInf(1000, sol) << std::endl
+                  << "    Error-H1   = " << errorH1 << std::endl
                   << std::endl;
 
         std::stringstream  filename;
-        
+
         filename << "snap/snapshot_" << k << ".dat";
         eval.dump(1000, sol, filename.str().c_str());
 

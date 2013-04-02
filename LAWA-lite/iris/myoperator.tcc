@@ -279,6 +279,11 @@ mv(Transpose transA, double alpha,
             nnz  = 0;
 
             //std::cerr << c << "  ";
+
+            if (x(c)==T(0)) {
+                continue;
+            }
+
             for (int j=A.j0-1; j<=A.j1V; ++j) {
 
                 int r0 = A.inCol_firstNonZeroWithLevel(c, j);
@@ -314,6 +319,10 @@ mv(Transpose transA, double alpha,
         for (int r=1; r<=x.length(); ++r) {
             skip = 0;
             nnz  = 0;
+
+            if (x(r)==T(0)) {
+                continue;
+            }
 
             //std::cerr << r << "  ";
             for (int j=A.j0-1; j<=A.j1U; ++j) {

@@ -32,6 +32,13 @@ struct MyEval
     T
     diff_LInf(int N, const Function<T> &f) const;
 
+    template <typename OpA, typename Rhs, typename VU>
+        T
+        error_HNorm(const OpA              &A,
+                    const Rhs              &rhs,
+                    const DenseVector<VU>  &u,
+                    T                      HNormOfExactSolution);
+
     const CoeffVector  &u;
     const MyBasis<T>   &U;
 };

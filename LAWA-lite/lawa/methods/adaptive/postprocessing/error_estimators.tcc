@@ -46,7 +46,6 @@ computeErrorInH1Norm(MA &A_H, RHS &F_H, const Coefficients<Lexicographical,T,Ind
     T fu  = f_H*u;
 
     return std::sqrt(fabs(std::pow(HNormOfExactSolution,2)- 2*fu + uAu));
-
 }
 
 template <typename T, typename Index, typename SOLVER, typename MA_H, typename RHS_H>

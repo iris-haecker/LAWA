@@ -58,7 +58,9 @@ MyEval<T>::diff_L1(int N, const Function<T> &f) const
     double diff1;
     double diff2;
 
-    for (int k=1; k<=10; ++k) {
+    const int maxK = 1;
+
+    for (int k=1; k<=maxK; ++k) {
 
         diff1 = 0;
         diff2 = 0;
@@ -66,7 +68,7 @@ MyEval<T>::diff_L1(int N, const Function<T> &f) const
         for (int i=0; i<=2*N; ++i) {
             const double x     = double(i)/(2*N);
             const double value = abs(f(x) - operator()(x));
-            
+
             if (i==0 || i==2*N) {
                 diff1 += 0.5*value;
                 diff2 += 0.5*value;
@@ -81,7 +83,7 @@ MyEval<T>::diff_L1(int N, const Function<T> &f) const
 
         diff1 /= N;
         diff2 /= 2*N;
-        
+
         if (abs(diff1-diff2)<0.00001) {
             break;
         }
@@ -98,7 +100,9 @@ MyEval<T>::diff_L2(int N, const Function<T> &f) const
     double diff1;
     double diff2;
 
-    for (int k=1; k<=10; ++k) {
+    const int maxK = 1;
+
+    for (int k=1; k<=maxK; ++k) {
 
         diff1 = 0;
         diff2 = 0;
@@ -106,7 +110,7 @@ MyEval<T>::diff_L2(int N, const Function<T> &f) const
         for (int i=0; i<=2*N; ++i) {
             const double x     = double(i)/(2*N);
             const double value = pow(f(x) - operator()(x), 2);
-            
+
             if (i==0 || i==2*N) {
                 diff1 += 0.5*value;
                 diff2 += 0.5*value;
@@ -138,7 +142,9 @@ MyEval<T>::diff_LInf(int N, const Function<T> &f) const
     double diff1;
     double diff2;
 
-    for (int k=1; k<=10; ++k) {
+    const int maxK = 1;
+
+    for (int k=1; k<=maxK; ++k) {
 
         diff1 = 0;
         diff2 = 0;
@@ -146,7 +152,7 @@ MyEval<T>::diff_LInf(int N, const Function<T> &f) const
         for (int i=0; i<=2*N; ++i) {
             const double x     = double(i)/(2*N);
             const double value = abs(f(x) - operator()(x));
-            
+
             if (i%2 == 0) {
                 diff1 = max(diff1, value);
             }
@@ -158,6 +164,32 @@ MyEval<T>::diff_LInf(int N, const Function<T> &f) const
         }
     }
     return diff2;
+}
+
+template <typename T>
+template <typename OpA, typename Rhs, typename VU>
+T
+MyEval<T>::error_HNorm(const OpA              &A,
+                       const Rhs              &rhs,
+                       const DenseVector<VU>  &u,
+                       T                      HNormOfExactSolution)
+{
+    using std::abs;
+    using std::pow;
+    using std::sqrt;
+
+    typedef typename DenseVector<VU>::NoView  RealDenseVector;
+
+    RealDenseVector  Au, f;
+
+    Au = A*u;
+    T uAu = u*Au;
+
+    rhs.filter(0, f);
+
+    T fu = f*u;
+
+    return sqrt(abs(pow(HNormOfExactSolution,2)- 2*fu + uAu));
 }
 
 } // namespace lawa
