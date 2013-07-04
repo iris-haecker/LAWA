@@ -16,6 +16,7 @@ struct MyGHS2
 
     MyGHS2(const Operator  &opA,
            const Rhs       &rhs,
+           const Precond   &P,
            double          alpha,
            double          omega,
            double          gamma,
@@ -48,10 +49,11 @@ struct MyGHS2
           RealDenseVector  &w,
           Function<double> &sol) const;
 
-    const Operator  &opA;
-    const Rhs       &rhs;
-    const double    alpha, omega, gamma, theta;
-    const PrecondId Id;
+    const Operator      &opA;
+    const Rhs           &rhs;
+    const Precond       &P;
+    const double        alpha, omega, gamma, theta;
+    const PrecondId     Id;
 };
 
 } // namespace lawa

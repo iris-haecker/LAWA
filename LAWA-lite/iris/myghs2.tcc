@@ -6,17 +6,19 @@
 #include <iris/iris.h>
 #include <cmath>
 #include <sstream>
+#include <vector>
 
 namespace lawa {
 
 template <typename Operator, typename Rhs, typename Precond>
 MyGHS2<Operator, Rhs, Precond>::MyGHS2(const Operator  &_opA,
                                        const Rhs       &_rhs,
+                                       const Precond   &_P,
                                        double          _alpha,
                                        double          _omega,
                                        double          _gamma,
                                        double          _theta)
-    : opA(_opA), rhs(_rhs), alpha(_alpha), omega(_omega), gamma(_gamma),
+    : opA(_opA), rhs(_rhs), P(_P), alpha(_alpha), omega(_omega), gamma(_gamma),
       theta(_theta)
 {
 }
@@ -61,18 +63,24 @@ MyGHS2<Operator, Rhs, Precond>::grow(const RealDenseVector  &w,
 #       else
 
         Aw   = opA*w;
+        
+
         AtAw = Aw; // !!! transpose(opA)*Aw;
+        P.apply(AtAw);
+
         r    -= AtAw;
 #       endif
 
         rNorm = sqrt(r*r);
         nu    = rNorm + zeta;
 
+        /*
         std::cerr << "rNorm =       " << rNorm << std::endl;
         std::cerr << "zeta =        " << zeta << std::endl;
         std::cerr << "nu =          " << nu << std::endl;
         std::cerr << "omega =       " << omega << std::endl;
         std::cerr << "omega*rNorm = " << omega*rNorm << std::endl;
+        */
 
         if ((nu <= epsilon) || (zeta <= omega*rNorm)) {
             break;
@@ -164,21 +172,18 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
     }
 
     RealDenseVector  Aw, AtAw, r, x;
-    Precond          P;
 
     SparseGeMatrix<CRS<double, CRS_General> >  B;
     //RealGeMatrix     B;
     static int       k = 0;
 
-
     myRestrict(opA, P, Lambda, B);
     // myRestrict(opA, P, Lambda, k, B, epsilon);
-    std::cerr << "galsolve: k = " << k << std::endl;
+    //std::cerr << "galsolve: k = " << k << std::endl;
 
 #   ifdef  USE_APPLY
 
     MyApply<Operator, PrecondId>  A(opA, Id, zeta/3);
-
 
     Aw = A*w;
     AtAw = transpose(A)*Aw;
@@ -188,6 +193,8 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
     Aw   = opA*w;
     AtAw = Aw; // !!! transpose(opA)*Aw;
 
+    P.apply(AtAw);
+
 #   endif
 
     myRestrict(g, Lambda, r);
@@ -196,7 +203,8 @@ MyGHS2<Operator, Rhs, Precond>::galsolve(const IndexSet<int>    &Lambda,
     //std::cerr << "galsolve: r = " << r << std::endl;
 
     x.engine().resize(B.numCols());
-    int numIt = lawa::cg(B, x, r);
+    //int numIt = lawa::cg(B, x, r);
+    int numIt = lawa::cg(B, x, r, 0.000000000001, 100000);
 
     myExpandAdd(x, Lambda, w);
 
@@ -228,9 +236,12 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
         std::cerr << "k = " << k
                   << ": nu_k = " << nu_k
                   << std::endl;
+
+        /*
         std::cerr << "Lambda_kP1 = "
                   << Lambda_kP1
                   << std::endl;
+        */
 
         if (nu_k<=epsilon) {
             break;
@@ -256,10 +267,13 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
 {
     using std::sqrt;
 
-    double             nu_kM1 = nuM1;
-    double             nu_k;
-    RealDenseVector    g_kP1;
-    IndexSet<int>      Lambda_kP1;
+    double               nu_kM1 = nuM1;
+    double               nu_k;
+    RealDenseVector      g_kP1;
+    IndexSet<int>        Lambda_kP1;
+
+    std::vector<double>  error_L1, error_L2, error_LInf, vec_nu_k, nu;
+    std::vector<int>     lambdaSize;
 
     if (w.length()!=opA.numCols()) {
         w.engine().resize(opA.numCols());
@@ -268,21 +282,34 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
     for (int k=0; k<numOfIterations; ++k) {
         grow(w, theta*nu_kM1, epsilon, nu_k, Lambda_kP1);
 
+        /*
         std::cerr << "Lambda_kP1 = "
                   << Lambda_kP1
                   << std::endl;
+        */
 
         MyEval<double> eval(opA.U, w);
 
         double errorH1 = eval.error_HNorm(opA, rhs, w, sqrt(330.0)/60.0);
 
+        int    N       = Lambda_kP1.size();
+        double errL1   = eval.diff_L1(1000, sol);
+        double errL2   = eval.diff_L2(1000, sol);
+        double errLInf = eval.diff_LInf(1000, sol);
+
+        error_L1.push_back(errL1);
+        error_L2.push_back(errL2);
+        error_LInf.push_back(errLInf);
+        nu.push_back(nu_k);
+        lambdaSize.push_back(N);
+
         std::cerr << "GHS: " << std::endl
                   << "    k =          " << k  << std::endl
-                  << "    N =          " << Lambda_kP1.size() << std::endl
+                  << "    N =          " << N << std::endl
                   << "    nu_k =       " << nu_k << std::endl
-                  << "    Error-L1 =   " << eval.diff_L1(1000, sol) << std::endl
-                  << "    Error-L2 =   " << eval.diff_L2(1000, sol) << std::endl
-                  << "    Error-LInf = " << eval.diff_LInf(1000, sol) << std::endl
+                  << "    Error-L1 =   " << errL1 << std::endl
+                  << "    Error-L2 =   " << errL2 << std::endl
+                  << "    Error-LInf = " << errLInf << std::endl
                   << "    Error-H1   = " << errorH1 << std::endl
                   << std::endl;
 
@@ -306,7 +333,15 @@ MyGHS2<Operator, Rhs, Precond>::solve(double           nuM1,
 
     MyEval<double> eval(opA.U, w);
 
-    
+    for (unsigned int k=0; k<error_L1.size(); ++k) {
+        std::cerr << (k+1) << " "
+                  << lambdaSize[k] << " "
+                  << error_L1[k] << " "
+                  << error_L2[k] << " "
+                  << error_LInf[k] << " "
+                  << nu[k]
+                  << std::endl;
+    }
 
 }
 

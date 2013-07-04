@@ -17,10 +17,14 @@ MyOperator<T>::MyOperator(int d, int d_, int jMaxV, int jMaxU)
     assert(jMaxV>=j0);
     assert(jMaxU>=j0);
 
+    //
+    // Functions from V must vanish on the right side
+    //
     V.basisRight.enforceBoundaryCondition<lawa::DirichletBC>();
-    V.basisLeft.enforceBoundaryCondition<lawa::DirichletBC>();
-    U.basisRight.enforceBoundaryCondition<lawa::DirichletBC>();
-    U.basisLeft.enforceBoundaryCondition<lawa::DirichletBC>();
+    //V.basisLeft.enforceBoundaryCondition<lawa::DirichletBC>();
+    
+    //U.basisRight.enforceBoundaryCondition<lawa::DirichletBC>();
+    //U.basisLeft.enforceBoundaryCondition<lawa::DirichletBC>();
 }
 
 template <typename T>
@@ -265,7 +269,7 @@ mv(Transpose transA, double alpha,
     }
 #   endif
 
-    std::cerr << "DenseVector = MyOperator * DenseVector" << std::endl;
+    //std::cerr << "DenseVector = MyOperator * DenseVector" << std::endl;
 
     for (int r=1; r<=y.length(); ++r) {
         y(r) *= beta;
@@ -310,9 +314,11 @@ mv(Transpose transA, double alpha,
                       << ")" << std::endl;
             */
         }
+        /*
         std::cerr << " (skipTotal = " << skipTotal
                   << ",  nnzTotal = " << nnzTotal
                   << ")" << std::endl;
+        */
     } else {
 
         long skip, nnz, skipTotal, nnzTotal;
@@ -351,9 +357,11 @@ mv(Transpose transA, double alpha,
                       << ")" << std::endl;
             */
         }
+        /*
         std::cerr << " (skipTotal = " << skipTotal
                   << ",  nnzTotal = " << nnzTotal
                   << ")" << std::endl;
+        */
      }
 }
 

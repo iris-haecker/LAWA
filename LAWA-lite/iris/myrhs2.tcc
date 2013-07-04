@@ -52,7 +52,7 @@ MyRhs2<T, Precond>::MyRhs2(const Function<T>    &f,
     rhsData = transpose(A)*b;
 
 #   else
-    rhsData = b; // !!! transpose(myOperator)*b;
+    rhsData = transpose(myOperator)*b;
 
 #   endif
 
@@ -107,7 +107,6 @@ MyRhs2<T, Precond>::filter(const T             &tol,
         }
     }
 }
-
 
 } // namespace lawa
 

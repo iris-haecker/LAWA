@@ -23,8 +23,7 @@ myRestrict(const Operator       &A,
     for (iterator row=Lambda.begin(); row!=Lambda.end(); ++row, ++r) {
         c = 1;
         for (iterator col=Lambda.begin(); col!=Lambda.end(); ++col, ++c) {
-            // !!! B(r, c) = P(*row) * A(*row, *col);
-            B(r, c) = A(*row, *col);
+            B(r, c) = P(*row) * A(*row, *col);
         }
     }
     B.finalize();

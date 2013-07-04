@@ -56,8 +56,6 @@ GHS_ADWAV1D<T,Basis,APPLY1D,RHS>::SOLVE(T nuM1, T _eps, int NumOfIterations, T H
 
         time.start();
 
-
-
         std::cerr << "   GALSOLVE started with #Lambda = " << Lambda_kP1.size()  << std::endl;
         //g_kP1 = P(F(gamma*nu_k),Lambda_kP1);
         g_kP1 = F(Lambda_kP1);

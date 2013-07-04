@@ -96,6 +96,7 @@ T
 MyEval<T>::diff_L2(int N, const Function<T> &f) const
 {
     using std::pow;
+    using std::sqrt;
 
     double diff1;
     double diff2;
@@ -124,6 +125,9 @@ MyEval<T>::diff_L2(int N, const Function<T> &f) const
         }
         diff1 /= N;
         diff2 /= 2*N;
+        
+        diff1 = sqrt(diff1);
+        diff1 = sqrt(diff2);
 
         if (abs(diff1-diff2)<0.00001) {
             break;

@@ -16,7 +16,7 @@ MyPrecond<Operator>::MyPrecond(const Operator &_A)
     p.engine().resize(A.numCols());
 
     for (int k=1; k<=A.numCols(); ++k) {
-        p(k) = 1/sqrt(myIntegral(k,0,k,0)+myIntegral(k,1,k,1));
+        p(k) = double(1)/sqrt(myIntegral(k,0,k,0)+myIntegral(k,1,k,1));
     }
 }
 
@@ -25,6 +25,28 @@ double
 MyPrecond<Operator>::operator()(int absoluteIndex) const
 {
     return p(absoluteIndex);
+}
+
+template <typename Operator>
+template <typename VU>
+void
+MyPrecond<Operator>::apply(DenseVector<VU> &u) const
+{
+    for (int k=u.firstIndex(); k<=u.lastIndex(); ++k) {
+        u(k) *= p(k);
+    }
+}
+
+template <typename Operator>
+template <typename IS, typename VU>
+void
+MyPrecond<Operator>::apply(const IndexSet<IS> &Lambda, DenseVector<VU> &u) const
+{
+    typedef IndexSet<int>::const_iterator  iterator;
+
+    for (iterator k=Lambda.begin(); k!=Lambda.end(); ++k) {
+        u(k) *= p(k);
+    }
 }
 
 } // namespace lawa
