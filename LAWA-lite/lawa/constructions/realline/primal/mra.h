@@ -51,6 +51,11 @@ class MRA<_T,Primal,R,CDF>
         BSpline<T,Primal,R,CDF> phi;
         RefinementMatrix<T,R,CDF> M0;
 
+        template <BoundaryCondition BC>
+            void
+            enforceBoundaryCondition();
+        
+
     private:
         mutable int _j;
 };

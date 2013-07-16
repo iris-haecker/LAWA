@@ -13,7 +13,7 @@ namespace lawa {
  */
 
 template<typename T>
-struct RefSolsLaplace1D
+struct SolLaplace1D
 {
     static int nr;
 

@@ -20,6 +20,9 @@
 #include <lawa/flensforlawa.h>
 
 #include <lawa/aux/aux.h>
+
+#include <iris2/my/compoundbasis.h>
+
 #include <lawa/constructions/constructions.h>
 #include <lawa/functiontypes/functiontypes.h>
 #include <lawa/integrals/integrals.h>

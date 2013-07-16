@@ -27,6 +27,9 @@ namespace lawa {
 template <typename T, FunctionSide Side, DomainType Domain, Construction Cons>
 class MRA
 {
+        template <BoundaryCondition BC>
+            void
+            enforceBoundaryCondition();
 };
 
 } // namespace lawa

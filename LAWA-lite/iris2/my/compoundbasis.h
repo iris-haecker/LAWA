@@ -1,27 +1,69 @@
 #ifndef IRIS2_MY_COMPOUNDBASIS_H
 #define IRIS2_MY_COMPOUNDBASIS_H 1
 
+#include <lawa/constructions/interval/dijkema/primal/basis.h>
+
 namespace lawa {
 
 template <typename T>
 struct CompoundBasis
 {
-    typedef Basis<T, Primal, Interval, Dijkema>     PrimalBasis;
-    typedef PrimalBasis::BasisFunctionType          BasisFunctionType;
+    typedef Basis<T, Primal, Interval, Dijkema>      PrimalBasis;
+    typedef typename PrimalBasis::BasisFunctionType  BasisFunctionType;
 
     CompoundBasis(int d, int d_, int j0=-1);
 
-    virtual long
-    minK(XType e, int j, const T &x) const;
+    template <BoundaryCondition Left, BoundaryCondition Right>
+        void
+        enforceBoundaryCondition();
 
-    virtual long
-    maxK(XType e, int j, const T &x) const;
+    int
+    minK(int j, XType e, const T &x) const;
 
-    virtual Support<T>
-    support(XType e, int j, long k) const;
+    int
+    maxK(int j, XType e, const T &x) const;
+
+    Support<T>
+    support(int j, long k, XType e) const;
 
     const PrimalBasis &
-    getBasis(XType e, int j, int k) const;
+    getBasis(int j, int k, XType e) const;
+
+    bool
+    isLeft(int j, int k, XType e) const;
+
+    bool
+    isRight(int j, int k, XType e) const;
+
+//
+//  Range of scaling functions
+//
+    Range<int>
+    rangeI(int j) const;
+
+    Range<int>
+    rangeIL(int j=0) const;
+
+    Range<int>
+    rangeII(int j) const;
+
+    Range<int>
+    rangeIR(int j) const;
+
+//
+//  Range of wavelet functions
+//
+    Range<int>
+    rangeJ(int j) const;
+
+    Range<int>
+    rangeJL(int j=0) const;
+
+    Range<int>
+    rangeJI(int j) const;
+
+    Range<int>
+    rangeJR(int j) const;
 
     T
     operator()(XType e, int j, int k, T x, int deriv) const;
@@ -29,9 +71,7 @@ struct CompoundBasis
     int
     j0() const;
 
-    int
-    d() const;
-
+    int          d, d_;
     PrimalBasis  basisLeft, basisRight;
 };
 

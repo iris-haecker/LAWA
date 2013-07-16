@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 
     T eps = 1e-5;
 
-    Basis1D                     basis(d, d_, jmin);
+    Basis1D                     basis(d, d_, jMin);
     HelmholtzBilinearForm1D     Bil(basis, T(1));
     Preconditioner1D            P(basis);
     Compression1D               Compr(basis);
@@ -135,15 +135,17 @@ main(int argc, char *argv[])
     ofstream file(filename.str().c_str());
     postprocessing_H1<T,Index1D, GHS_Adwav, MA, Rhs_PP>(ghs_adwav, A, F_pp, refsol.H1norm(),
                                                         filename.str().c_str());
+    cout << "  filename: " << filename.str().c_str() << endl;
     cout << "Postprocessing finished." << endl;
 
     stringstream plot_filename;
     plot_filename << "ghs-adwav-realline-helmholtz1d-W-XBSpline-plot_" << example
-                  << "_" << d << "_" << d_ << "_" << jmin << ".dat";
+                  << "_" << d << "_" << d_ << "_" << jMin << ".dat";
     cout << "Plot of solution started." << endl;
     plot<T, Basis1D, Preconditioner1D>(basis, ghs_adwav.solutions[NumOfIterations-1], P, refsol.u,
                                        refsol.d_u, -10., 10., pow2i<T>(-5),
                                        plot_filename.str().c_str());
+    cout << "  filename: " << plot_filename.str().c_str() << endl;
     cout << "Plot of solution finished." << endl;
 
     return 0;

@@ -52,6 +52,11 @@ class MRA<_T,Primal,Periodic,CDF>
         Range<int>
         rangeI(int j) const;
 
+        template <BoundaryCondition BC>
+            void
+            enforceBoundaryCondition();
+
+
         const int d, d_, j0;
         BSpline<T,Primal,Periodic,CDF> phi;
         RefinementMatrix<T,Periodic,CDF> M0;

@@ -55,8 +55,8 @@ class MRA<_T,Orthogonal,Interval,Multi>
         setLevel(int j) const;
         
         template <BoundaryCondition BC>
-        void
-        enforceBoundaryCondition();
+            void
+            enforceBoundaryCondition();
         
         const int d;     
         const int j0;          // minimal used(!) level.

@@ -60,7 +60,8 @@ void
 Basis<T,Primal,Interval,Dijkema>::enforceBoundaryCondition()
 {
     if ((_bc(0)==0) && (_bc(1)==0)) {
-        _bc(0) = _bc(1) = 1;
+        _bc(0) = 1;
+        _bc(1) = 1;
         mra.enforceBoundaryCondition<BC>();
         mra_.enforceBoundaryCondition<BC>();
         GeMatrix<FullStorage<T,ColMajor> > Mj1, Mj1_;
