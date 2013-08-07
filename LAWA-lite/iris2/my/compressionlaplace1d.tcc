@@ -54,7 +54,7 @@ CompressionLaplace1D<T>::SparsityPattern(const Index1D &lambda_col,
     //larger than s_tilde cannot appear in LambdaRow
 
     IndexSet<Index1D> Lambda_x = lambdaTilde1d(lambda_col, A, s, jmin, jmax);
-    
+
     for (SetIt lambda=Lambda_x.begin(); lambda!=Lambda_x.end(); ++lambda) {
         if (LambdaRow.count(*lambda)>0) {
             LambdaRowSparse.insert(*lambda);

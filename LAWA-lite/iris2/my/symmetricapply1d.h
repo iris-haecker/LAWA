@@ -16,6 +16,7 @@ class SymmetricApply1D
     typedef typename IndexSet<Index1D>::const_iterator  IndexSetIt;
 
     public:
+
         typedef MA MAType;
 
         const ParametersLaplace1D<T>    &parameters;
@@ -34,7 +35,6 @@ class SymmetricApply1D
 
         int
         findK(const CoefficientsAbs &v, T eps);
-
 };
 
 }   //namespace lawa

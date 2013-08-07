@@ -20,11 +20,16 @@ Laplace1D<T>::Laplace1D(int d, int d_)
     // Functions from U and V must vanish on the left and right boundary
     //
 
+    U.enforceBoundaryCondition<DirichletBC,DirichletBC>();
+    V.enforceBoundaryCondition<DirichletBC,DirichletBC>();
+
+    /*
     U.basisLeft.enforceBoundaryCondition<DirichletBC>();
     U.basisRight.enforceBoundaryCondition<DirichletBC>();
 
     V.basisLeft.enforceBoundaryCondition<DirichletBC>();
     V.basisRight.enforceBoundaryCondition<DirichletBC>();
+    */
 }
 
 template <typename T>
@@ -34,11 +39,17 @@ Laplace1D<T>::Laplace1D(int d, int d_, int jMin)
     //
     // Functions from U and V must vanish on the left and right boundary
     //
+
+    U.enforceBoundaryCondition<DirichletBC,DirichletBC>();
+    V.enforceBoundaryCondition<DirichletBC,DirichletBC>();
+
+    /*
     U.basisLeft.enforceBoundaryCondition<DirichletBC>();
     U.basisRight.enforceBoundaryCondition<DirichletBC>();
 
     V.basisLeft.enforceBoundaryCondition<DirichletBC>();
     V.basisRight.enforceBoundaryCondition<DirichletBC>();
+    */
 }
 
 template <typename T>
