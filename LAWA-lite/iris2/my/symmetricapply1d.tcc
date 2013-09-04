@@ -31,6 +31,7 @@ SymmetricApply1D<T,MA>::operator()(const CoefficientsLex &v, int k)
     int count = 0;
 
     for (CoeffAbsIt it=tmp.begin(); (it!=tmp.end()) && (s<=k); ++it) {
+        
         IndexSet<Index1D> Lambda_v;
 
         Lambda_v = lambdaTilde1d((*it).second,

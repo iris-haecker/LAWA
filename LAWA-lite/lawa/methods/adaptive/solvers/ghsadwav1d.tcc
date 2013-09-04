@@ -83,15 +83,19 @@ GHS_ADWAV1D<T,Basis,APPLY1D,RHS>::GROW(const Coefficients<Lexicographical,T,Inde
     T zeta = 2.*(omega*nu_bar)/(1-omega);
     T r_norm = 0.;
     Coefficients<Lexicographical,T,Index1D> r, Aw, rhs;
+
+    int count = 1;
+
     while (1) {
+        
         zeta *= 0.5;
         rhs = F(0.5*zeta);
         Aw  = Apply(w, 0.5*zeta);
         r = rhs - Aw;
         r_norm = r.norm(2.);
         nu = r_norm + zeta;
-        //std::cerr << "    zeta = " << zeta << ", r_norm = " << r_norm
-        //          << ", omega*r_norm = " << omega*r_norm << ", nu = " << nu << std::endl;
+        std::cerr << "    zeta = " << zeta << ", r_norm = " << r_norm
+                  << ", omega*r_norm = " << omega*r_norm << ", nu = " << nu << std::endl;
         if (nu <= eps) break;
         if (zeta<=omega*r_norm) break;
     }
@@ -108,16 +112,16 @@ GHS_ADWAV1D<T,Basis,APPLY1D,RHS>::GROW(const Coefficients<Lexicographical,T,Inde
         }
     }
 
-    //std::cerr << "   Before extension: ||P_{Lambda}r ||_2 = " << std::sqrt(P_Lambda_r_norm_square)
-    //          << ", alpha*r_norm = " << alpha*r_norm << std::endl;
+    std::cerr << "   Before extension: ||P_{Lambda}r ||_2 = " << std::sqrt(P_Lambda_r_norm_square)
+              << ", alpha*r_norm = " << alpha*r_norm << std::endl;
     if (nu > eps) {
         for (const_coeff_abs_it it=r_abs.begin(); it!=r_abs.end(); ++it) {
             if (Lambda.count((*it).second) == 0) {
                 Lambda.insert((*it).second);
                 P_Lambda_r_norm_square += std::pow((*it).first,2);
-                //std::cerr << "    Added " << (*it).second << ", now: ||P_{Lambda}r ||_2 = "
-                //          << std::sqrt(P_Lambda_r_norm_square) << ", alpha*r_norm = "
-                //          << alpha*r_norm << std::endl;
+                std::cerr << "    Added " << (*it).second << ", now: ||P_{Lambda}r ||_2 = "
+                          << std::sqrt(P_Lambda_r_norm_square) << ", alpha*r_norm = "
+                          << alpha*r_norm << std::endl;
                 if (P_Lambda_r_norm_square >= alpha*r_norm*alpha*r_norm) break;
             }
         }

@@ -64,11 +64,26 @@ template <typename T, Construction Cons>
 Support<T>
 BSpline<T,Primal,Interval,Cons>::support(int j, long k) const
 {
+    /*
     assert(j>=mra.j0);
     assert(k>=mra.rangeI(j).firstIndex());
     assert(k<=mra.rangeI(j).lastIndex());
     return pow2i<T>(-j) * Support<T>(std::max(0L,k-mra.d),
                                      std::min(k,pow2i<long>(j)));
+    */
+
+    if ((j>=mra.j0) && (k>=mra.rangeI(j).firstIndex()) && (k<=mra.rangeI(j).lastIndex())) {
+        return pow2i<T>(-j) * Support<T>(std::max(0L,k-mra.d),
+                                         std::min(k,pow2i<long>(j)));
+    } else {
+        std::cerr << "j = " << j << ", k = " << k
+                  << ", mra.j0 = " << mra.j0
+                  << ", mra.rangeI(j).firstIndex() = " << mra.rangeI(j).firstIndex()
+                  << ", mra.rangeI(j).lastIndex() = " << mra.rangeI(j).lastIndex()
+                  << std::endl;
+        assert(0);
+    }
+
 }
 
 template <typename T, Construction Cons>

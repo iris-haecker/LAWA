@@ -19,6 +19,10 @@ lambdaTilde1d(const Index1D &lambda, const Laplace1D<T> &A,
     int j1 = lambda.j;
     int k1 = lambda.k;
 
+    // TODO: remove
+    jMax = std::min(16, jMax);
+
+
     if (lambda.xtype == XBSpline) {
 
         assert(j1==jMin);

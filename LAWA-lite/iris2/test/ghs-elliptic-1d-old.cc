@@ -232,7 +232,6 @@ initializeRHSVector(const Basis1D               &basis,
         f_singular[*it] = P(*it)*rhsintegral1d_singular(*it);
     }
 
-
     Coefficients<Lexicographical,T,Index1D> f_smooth;
     IndexSet<Index1D> LambdaRHS_smooth =computeRHSLambda_SmoothPart(basis,left_bound,
                                                                     right_bound,J_plus_smooth);
