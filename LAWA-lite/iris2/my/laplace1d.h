@@ -25,6 +25,12 @@ struct Laplace1D
     int
     maxK2(int j1, int k1, XType e1, int j2, XType e2) const;
 
+    const CompoundBasis<double> &
+    basisRow() const;
+
+    const CompoundBasis<double> &
+    basisCol() const;
+
     T
     operator()(const Index1D &row_index, const Index1D &col_index) const;
 

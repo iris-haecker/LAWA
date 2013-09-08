@@ -26,6 +26,9 @@ struct CompoundBasis
     Support<T>
     support(int j, long k, XType e) const;
 
+    DenseVector<Array<T> >
+    singularSupport(int j, int k, XType e) const;
+
     const PrimalBasis &
     getBasis(int j, int k, XType e) const;
 

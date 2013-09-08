@@ -24,9 +24,21 @@ typedef GHS_ADWAV1D<T,
 
 template <typename T>
     Coefficients<Lexicographical,T,Index1D>
-    initRHS(const CompoundBasis<T>              &V,
-            const RHSIntegral1D<T>              &rhsIntegral,
-            const PreconditionerLaplace1D<T>    &P);
+    initRHS(const CompoundBasis<T>                      &V,
+            const RHSIntegral1D<T>                      &rhsIntegral,
+            const PreconditionerLaplace1D<T>            &P);
+
+template <typename T, typename Preconditioner>
+    void
+    plot(const CompoundBasis<T>                         &U,
+         const Coefficients<Lexicographical,T,Index1D>  coeff,
+         const Preconditioner                           &P,
+         T                                              (*u)(T),
+         T                                              (*du)(T),
+         T                                              a,
+         T                                              b,
+         T                                              h,
+         const char*                                    filename);
 
 int
 main()
@@ -35,7 +47,10 @@ main()
 
     RefSol::setExample(1, T(1));
 
-    Laplace1D<T>                            A(2,4);
+    const int                               d = 4;
+    const int                               d_ = 6;
+
+    Laplace1D<T>                            A(d, d_);
     PreconditionerLaplace1D<T>              P(A);
     CompressionLaplace1D<T>                 Compr(A);
     ParametersLaplace1D<T>                  parameters(A);
@@ -56,6 +71,24 @@ main()
     cout << "ADWAV started." << endl;
     ghs_adwav.SOLVE(f.norm(2.), eps, maxNumOfIterations, RefSol::H1norm());
     cout << "ADWAV finished." << endl;
+
+    stringstream plot_filename;
+    plot_filename << "test-ghs-W-XBSpline-plot"
+                  << "_" << d << "_" << d_ << "_" << A.j0 << ".dat";
+    cout << "Plot of solution started." << endl;
+
+    plot(A.U,
+         ghs_adwav.solutions[maxNumOfIterations-1],
+         P,
+         RefSol::u,
+         RefSol::d_u,
+         T(0),
+         T(1),
+         pow2i<T>(-5),
+         plot_filename.str().c_str());
+    cout << "Plot of solution finished." << endl;
+
+
 }
 
 template <typename T>
@@ -102,3 +135,37 @@ initRHS(const CompoundBasis<T>              &V,
 
     return f;
 }
+
+template <typename T, typename Preconditioner>
+void
+plot(const CompoundBasis<T>                         &U,
+     const Coefficients<Lexicographical,T,Index1D>  coeff,
+     const Preconditioner                           &P,
+     T                                              (*u)(T),
+     T                                              (*du)(T),
+     T                                              a,
+     T                                              b,
+     T                                              h,
+     const char*                                    filename)
+{
+    typedef Coefficients<Lexicographical,T,Index1D >    Coeff;
+    typedef typename Coeff::const_iterator              coeff_it;
+
+    std::ofstream plotfile(filename);
+    for (T x=a; x<=b; x+=h) {
+        T appr=0., d_appr = 0.0;
+        T exact= u(x);
+        T d_exact= du(x);
+        for (coeff_it it = coeff.begin(); it != coeff.end(); ++it) {
+            int j = (*it).first.j, k = (*it).first.k;
+            T coeff = (*it).second, prec = P((*it).first);
+
+            appr   += prec * coeff * U((*it).first.xtype, j, k, x, 0);
+            d_appr += prec * coeff * U((*it).first.xtype, j, k, x, 1);
+
+        }
+        plotfile << x << " " << exact << " " << d_exact << " " << appr << " " << d_appr << std::endl;
+    }
+    plotfile.close();
+}
+

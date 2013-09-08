@@ -51,6 +51,16 @@ CompoundBasis<T>::support(int j, long k, XType e) const
 }
 
 template <typename T>
+DenseVector<Array<T> >
+CompoundBasis<T>::singularSupport(int j, int k, XType e) const
+{
+    if (e==XBSpline) {
+        return getBasis(j,k,e).mra.phi.singularSupport(j,k);
+    }
+    return getBasis(j,k,e).psi.singularSupport(j,k);
+}
+
+template <typename T>
 const typename CompoundBasis<T>::PrimalBasis &
 CompoundBasis<T>::getBasis(int j, int k, XType e) const
 {

@@ -62,15 +62,7 @@ template <typename T>
 int
 Laplace1D<T>::minK2(int j1, int k1, XType e1, int j2, XType e2) const
 {
-    std::cerr << "Laplace1D<T>::minK2 <"
-              << j1 << ", "
-              << k1 << ", "
-              << e1;
-    
     const T x = V.support(j1,k1,e1).l1;
-
-    std::cerr << "> Laplace1D<T>::minK2" << std::endl;
-
     return U.minK(j2, e2, x);
 }
 
@@ -78,13 +70,22 @@ template <typename T>
 int
 Laplace1D<T>::maxK2(int j1, int k1, XType e1, int j2, XType e2) const
 {
-    std::cerr << "Laplace1D<T>::maxK2 <";
-
     const T x = V.support(j1,k1,e1).l2;
-
-    std::cerr << "> Laplace1D<T>::maxK2" << std::endl;
-
     return U.maxK(j2, e2, x);
+}
+
+template <typename T>
+const CompoundBasis<double> &
+Laplace1D<T>::basisRow() const
+{
+    return V;
+}
+
+template <typename T>
+const CompoundBasis<double> &
+Laplace1D<T>::basisCol() const
+{
+    return U;
 }
 
 template <typename T>
@@ -94,8 +95,8 @@ Laplace1D<T>::operator()(XType e1, int j1, int k1,
 {
     typedef typename CompoundBasis<T>::PrimalBasis  PrimalBasis;
 
-    const PrimalBasis &_U = U.getBasis(j1, k1, e1);
-    const PrimalBasis &_V = V.getBasis(j2, k2, e2);
+    const PrimalBasis &_V = V.getBasis(j1, k1, e1);
+    const PrimalBasis &_U = U.getBasis(j2, k2, e2);
 
     Integral<Gauss,PrimalBasis,PrimalBasis>  integral(_V, _U);
 
