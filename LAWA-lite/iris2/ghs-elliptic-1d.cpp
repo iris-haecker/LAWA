@@ -127,7 +127,7 @@ main(int argc, char *argv[])
     cout << "ADWAV finished." << endl;
 
 
-    RhsIntegral1D rhsintegral1d_pp(basis,rhs_func, refsol.deltas,300);
+    RhsIntegral1D rhsintegral1d_pp(basis, rhs_func, refsol.deltas, 300);
     Rhs_PP F_pp(rhsintegral1d_pp,P);
 
     cout << "Postprocessing started." << endl;

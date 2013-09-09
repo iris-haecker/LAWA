@@ -19,6 +19,10 @@ struct Laplace1D
     operator()(XType e1, int j1, int k1,
                XType e2, int j2, int k2) const;
 
+    T
+    pH1(XType e1, int j1, int k1,
+        XType e2, int j2, int k2) const;
+
     int
     minK2(int j1, int k1, XType e1, int j2, XType e2) const;
 
@@ -33,6 +37,9 @@ struct Laplace1D
 
     T
     operator()(const Index1D &row_index, const Index1D &col_index) const;
+
+    T
+    pH1(const Index1D &row_index, const Index1D &col_index) const;
 
     int
     d() const;

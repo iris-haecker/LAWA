@@ -28,6 +28,14 @@ template <typename T>
             const RHSIntegral1D<T>                      &rhsIntegral,
             const PreconditionerLaplace1D<T>            &P);
 
+template <typename T, typename SOLVER, typename MA_H, typename RHS_H>
+    void
+    postprocessing_H1(SOLVER                            &Solver,
+                      MA_H                              &A_H1,
+                      RHS_H                             &F_H1,
+                      T                                 H1norm,
+                      const char                        *filename);
+
 template <typename T, typename Preconditioner>
     void
     plot(const CompoundBasis<T>                         &U,
@@ -72,13 +80,29 @@ main()
     ghs_adwav.SOLVE(f.norm(2.), eps, maxNumOfIterations, RefSol::H1norm());
     cout << "ADWAV finished." << endl;
 
+
+    cout << "Postprocessing started." << endl;
+    stringstream filename;
+    filename << "test-ghs-W-XBSpline"
+             << d << "_" << d_ << "_" << A.j0 << ".dat";
+    ofstream file(filename.str().c_str());
+    postprocessing_H1(ghs_adwav,
+                      MA,
+                      F,
+                      RefSol::H1norm(),
+                      filename.str().c_str());
+    cout << "Postprocessing finished." << endl;
+
+
     stringstream plot_filename;
     plot_filename << "test-ghs-W-XBSpline-plot"
                   << "_" << d << "_" << d_ << "_" << A.j0 << ".dat";
     cout << "Plot of solution started." << endl;
 
+    int numOfIterations = ghs_adwav.solutions.size();
+
     plot(A.U,
-         ghs_adwav.solutions[maxNumOfIterations-1],
+         ghs_adwav.solutions[numOfIterations-1],
          P,
          RefSol::u,
          RefSol::d_u,
@@ -136,6 +160,28 @@ initRHS(const CompoundBasis<T>              &V,
     return f;
 }
 
+template <typename T, typename SOLVER, typename MA_H, typename RHS_H>
+void
+postprocessing_H1(SOLVER& Solver, MA_H &A_H1, RHS_H &F_H1, T H1norm, const char* filename)
+{
+
+    Coefficients<Lexicographical,T,Index1D> u;
+    std::ofstream file(filename);
+
+    for (int i=0; i<int(Solver.solutions.size()); ++i) {
+        u = Solver.solutions[i];
+        T ErrorH1Norm = computeErrorInH1Norm(A_H1, F_H1, u, H1norm);
+        file      << supp(u).size() << " " << Solver.linsolve_iterations[i] << " "
+                  << Solver.times[i] << " " << Solver.residuals[i] << " "
+                  << ErrorH1Norm << std::endl;
+        std::cerr << supp(u).size() << " " << Solver.linsolve_iterations[i] << " "
+                  << Solver.times[i] << " " << Solver.residuals[i] << " "
+                  << ErrorH1Norm << std::endl;
+    }
+    file.close();
+}
+
+
 template <typename T, typename Preconditioner>
 void
 plot(const CompoundBasis<T>                         &U,
@@ -148,6 +194,8 @@ plot(const CompoundBasis<T>                         &U,
      T                                              h,
      const char*                                    filename)
 {
+    std::cerr << "hello" << std::endl;
+    
     typedef Coefficients<Lexicographical,T,Index1D >    Coeff;
     typedef typename Coeff::const_iterator              coeff_it;
 

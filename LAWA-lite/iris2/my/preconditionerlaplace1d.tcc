@@ -23,6 +23,7 @@ T
 PreconditionerLaplace1D<T>::operator()(const Index1D &index) const
 {
     return T(1) / A(index,index);
+    //return T(1) / A.pH1(index,index);
 }
 
 } // namespace lawa

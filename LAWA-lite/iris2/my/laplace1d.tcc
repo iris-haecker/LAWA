@@ -106,8 +106,34 @@ Laplace1D<T>::operator()(XType e1, int j1, int k1,
 
 template <typename T>
 T
+Laplace1D<T>::pH1(XType e1, int j1, int k1,
+                  XType e2, int j2, int k2) const
+{
+    typedef typename CompoundBasis<T>::PrimalBasis  PrimalBasis;
+
+    const PrimalBasis &_V = V.getBasis(j1, k1, e1);
+    const PrimalBasis &_U = U.getBasis(j2, k2, e2);
+
+    Integral<Gauss,PrimalBasis,PrimalBasis>  integral(_V, _U);
+
+    // v_x * u_x
+    return std::sqrt(integral(j1, k1, e1, 0, j2, k2, e2, 0)
+                   + integral(j1, k1, e1, 1, j2, k2, e2, 1));
+}
+
+template <typename T>
+T
 Laplace1D<T>::operator()(const Index1D &row_index,
                          const Index1D &col_index) const
+{
+    return operator()(row_index.xtype, row_index.j, row_index.k,
+                      col_index.xtype, col_index.j, col_index.k);
+}
+
+template <typename T>
+T
+Laplace1D<T>::pH1(const Index1D &row_index,
+                  const Index1D &col_index) const
 {
     return operator()(row_index.xtype, row_index.j, row_index.k,
                       col_index.xtype, col_index.j, col_index.k);
