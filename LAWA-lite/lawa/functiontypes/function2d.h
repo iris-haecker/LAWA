@@ -28,6 +28,8 @@ template<typename T>
 struct Function2D
 {
 public:
+    Function2D(T (*_f)(T,T));
+
     Function2D(T (*_f)(T,T), const DenseVector<Array<T> > &_singularPts_x,
                              const DenseVector<Array<T> > &_singularPts_y);
 

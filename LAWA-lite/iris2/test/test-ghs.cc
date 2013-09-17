@@ -108,7 +108,7 @@ main()
          RefSol::d_u,
          T(0),
          T(1),
-         pow2i<T>(-5),
+         pow2i<T>(-10),
          plot_filename.str().c_str());
     cout << "Plot of solution finished." << endl;
 
@@ -151,7 +151,7 @@ initRHS(const CompoundBasis<T>              &V,
     typedef IndexSet<Index1D>::const_iterator const_set_it;
 
     Coefficients<Lexicographical,T,Index1D>     f;
-    IndexSet<Index1D> RHSLambda = computeRHSLambda(V, V.j0()+1);
+    IndexSet<Index1D> RHSLambda = computeRHSLambda(V, V.j0()+6);
 
     for (const_set_it it=RHSLambda.begin(); it!=RHSLambda.end(); ++it) {
         f[*it] = P(*it)*rhsIntegral(*it);
@@ -194,8 +194,6 @@ plot(const CompoundBasis<T>                         &U,
      T                                              h,
      const char*                                    filename)
 {
-    std::cerr << "hello" << std::endl;
-    
     typedef Coefficients<Lexicographical,T,Index1D >    Coeff;
     typedef typename Coeff::const_iterator              coeff_it;
 

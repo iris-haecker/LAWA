@@ -1,5 +1,5 @@
-#ifndef IRIS2_REFSOLS_SOLLAPLACE1D_H
-#define IRIS2_REFSOLS_SOLLAPLACE1D_H 1
+#ifndef IRIS2_REFSOLS_SOLLAPLACE1D_M2_H
+#define IRIS2_REFSOLS_SOLLAPLACE1D_M2_H 1
 
 #include <lawa/settings/enum.h>
 #include <lawa/flensforlawa.h>
@@ -13,7 +13,7 @@ namespace lawa {
  */
 
 template<typename T>
-struct SolLaplace1D
+struct SolLaplace1D_M2
 {
     static int nr;
 
@@ -27,16 +27,13 @@ struct SolLaplace1D
     setExample(int nr, T alpha = T(1));
 
     static T
-    exact(T x, int deriv);
+    exact(T x, T y);
 
     static T
-    u(T x);
+    u(T x, T y);
 
     static T
-    d_u(T x);
-
-    static T
-    rhs(T x);
+    rhs(T x, T y);
 
     static T
     H1norm();
@@ -62,4 +59,4 @@ struct SolLaplace1D
 
 } // namespace lawa
 
-#endif // IRIS2_REFSOLS_SOLLAPLACE1D_H
+#endif // IRIS2_REFSOLS_SOLLAPLACE1D_M2_H

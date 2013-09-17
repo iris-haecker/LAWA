@@ -47,11 +47,11 @@ typedef RHS<T,Index1D, SumOfRHSIntegral1D, Preconditioner1D>        Rhs;
 typedef RHS<T,Index1D, RhsIntegral1D, Preconditioner1D>             Rhs_PP;
 
 //APPLY definitions
-typedef Parameters<T, LaplaceBilinearForm1D, Preconditioner1D>   Parameters1D;
-typedef SYM_APPLY_1D<T,Index1D,Basis1D,Parameters1D,MA>                   APPLY1D;
+typedef Parameters<T, LaplaceBilinearForm1D, Preconditioner1D>      Parameters1D;
+typedef SYM_APPLY_1D<T,Index1D,Basis1D,Parameters1D,MA>             APPLY1D;
 
 //Algorithm definition
-typedef GHS_ADWAV1D<T,Basis1D,APPLY1D,Rhs>                                GHS_Adwav;
+typedef GHS_ADWAV1D<T,Basis1D,APPLY1D,Rhs>                          GHS_Adwav;
 
 template <typename T>
 IndexSet<Index1D>

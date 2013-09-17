@@ -87,6 +87,8 @@ struct lt<Lexicographical, Index1D>
     bool operator()(const Entry<Index1D> &left, const Entry<Index1D> &right) const;
 };
 
+//-- Index2D: Lexicographical --------------------------------------------------
+
 template <>
 struct lt<Lexicographical, Index2D>
 {
@@ -94,6 +96,30 @@ struct lt<Lexicographical, Index2D>
 
     bool operator()(const Entry<Index2D> &left, const Entry<Index2D> &right) const;
 };
+
+/*
+//-- Index2D: LexicographicalByRows --------------------------------------------
+
+template <>
+struct lt<LexicographicalByRows, Index2D>
+{
+    bool operator()(const Index2D &left, const Index2D &right) const;
+
+    bool operator()(const Entry<Index2D> &left, const Entry<Index2D> &right) const;
+};
+
+//-- Index2D: LexicographicalByCols --------------------------------------------
+
+template <>
+struct lt<LexicographicalByCols, Index2D>
+{
+    bool operator()(const Index2D &left, const Index2D &right) const;
+
+    bool operator()(const Entry<Index2D> &left, const Entry<Index2D> &right) const;
+};
+*/
+
+//-- Index3D: Lexicographical --------------------------------------------------
 
 template <>
 struct lt<Lexicographical, Index3D>

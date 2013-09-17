@@ -8,8 +8,11 @@
 #include <iris2/my/parameterslaplace1d.tcc>
 #include <iris2/my/preconditionerlaplace1d.tcc>
 #include <iris2/my/rhsintegral1d.tcc>
+#include <iris2/my/rhsintegral2d.tcc>
 #include <iris2/my/symmetricapply1d.tcc>
+#include <iris2/my/staticrhs.tcc>
 
 #include <iris2/refsols/sollaplace1d.tcc>
+#include <iris2/refsols/sollaplace1d_m2.tcc>
 
 #endif // IRIS2_IRIS2_TCC

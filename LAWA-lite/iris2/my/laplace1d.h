@@ -1,5 +1,5 @@
-#ifndef IRIS2_MY_LAPLACE_H
-#define IRIS2_MY_LAPLACE_H 1
+#ifndef IRIS2_MY_LAPLACE1D_H
+#define IRIS2_MY_LAPLACE1D_H 1
 
 #include <iris2/my/compoundbasis.h>
 
@@ -50,4 +50,4 @@ struct Laplace1D
 
 } // namespace lawa
 
-#endif // IRIS2_MY_LAPLACE_H
+#endif // IRIS2_MY_LAPLACE1D_H

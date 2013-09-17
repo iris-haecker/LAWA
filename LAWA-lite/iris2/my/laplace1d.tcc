@@ -116,6 +116,8 @@ Laplace1D<T>::pH1(XType e1, int j1, int k1,
 
     Integral<Gauss,PrimalBasis,PrimalBasis>  integral(_V, _U);
 
+    //return operator()(e1, j1, k1, e2, j2, k2);
+
     // v_x * u_x
     return std::sqrt(integral(j1, k1, e1, 0, j2, k2, e2, 0)
                    + integral(j1, k1, e1, 1, j2, k2, e2, 1));

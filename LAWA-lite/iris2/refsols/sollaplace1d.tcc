@@ -47,6 +47,16 @@ SolLaplace1D<T>::exact(T x, int deriv)
             return -M_PI*M_PI*sin(M_PI*x);
         }
     }
+
+    if (nr==2) {
+        if (deriv==0) {
+            return sin(20*M_PI*x);
+        } else if (deriv==1) {
+            return 20*M_PI*cos(20*M_PI*x);
+        } else if (deriv==2) {
+            return -20*20*M_PI*M_PI*sin(20*M_PI*x);
+        }
+    }
     
     std::cerr << "nr = " << nr << std::endl;
     std::cerr << "deriv = " << deriv << std::endl;
@@ -83,6 +93,9 @@ SolLaplace1D<T>::H1norm()
     if (nr==1) {
         return sqrt((M_PI*M_PI+1)/2);
     }
+    if (nr==2) {
+        return 20*sqrt((M_PI*M_PI+1)/2);
+    }
     assert(0);
     return 0;
 }
@@ -105,6 +118,7 @@ SolLaplace1D<T>::getRHS_W_XBSplineParameters(int  d,
                                              bool &_singular_integral,
                                              T    /*eps*/)
 {
+    // TODO:  So far these parameters are hard coded in the examples ...
 }
 
 template <typename T>
@@ -120,6 +134,7 @@ SolLaplace1D<T>::getRHS_WO_XBSplineParameters(int  d,
                                               bool &_singular_integral,
                                               T    /*eps*/)
 {
+    // TODO:  So far these parameters are hard coded in the examples ...
 }
 
 } //namespace lawa

@@ -17,6 +17,7 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <cassert>
 #include <lawa/methods/adaptive/datastructures/index.h>
 
 namespace lawa {
@@ -116,6 +117,7 @@ lt<Lexicographical, Index1D>::operator()(const Entry<Index1D> &left, const Entry
     else                                           return left.col_index.val < right.col_index.val;
 }
 
+
 bool 
 lt<Lexicographical, Index2D>::operator()(const Index2D &left, const Index2D &right) const
 {
@@ -140,7 +142,27 @@ lt<Lexicographical, Index2D>::operator()(const Entry<Index2D> &left, const Entry
         return left.col_index.index2.val < right.col_index.index2.val;
     }
 }
+
+
+bool 
+lt<Lexicographical2, Index2D>::operator()(const Index2D &left,
+                                          const Index2D &right) const
+{
+    // sort Operator col-wise
+    if (left.index2.val != right.index2.val) return left.index2.val < right.index2.val;
+    else                                     return left.index1.val < right.index1.val;
+}
     
+bool 
+lt<Lexicographical2, Index2D>::operator()(const Entry<Index2D> &left,
+                                          const Entry<Index2D> &right) const
+{
+    // sort Operator col-wise
+    assert(0);
+}
+
+
+
 bool
 lt<Lexicographical, Index3D>::operator()(const Index3D &left, const Index3D &right) const
 {
