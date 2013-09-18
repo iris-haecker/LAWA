@@ -11,16 +11,7 @@ using MappedLaplace1D = MapMatrix<T,
                                   PreconditionerLaplace1D<T> >;
 
 template <typename T>
-using Rhs = StaticRHS<T, Index1D, PreconditionerLaplace1D<T> >;
-
-template <typename T>
 using SymApply1D = SymmetricApply1D<T, MappedLaplace1D<T> >;
-
-template <typename T>
-using GHS_Adwav =  GHS_ADWAV1D<T,
-                               CompoundBasis<T>,
-                               SymApply1D<T>,
-                               Rhs<T> >;
 
 template <typename T>
     Coefficients<Lexicographical,T,Index2D>
@@ -43,48 +34,56 @@ main()
 
     RefSol::setExample(1, T(1));
 
-    const int                               d = 4;
-    const int                               d_ = 6;
+    const int                                   d = 4;
+    const int                                   d_ = 6;
 
-    Laplace1D<T>                            A(d, d_);
-    PreconditionerLaplace1D<T>              P(A);
+//
+//  Setup A1
+//
+    Laplace1D<T>                                A1(d, d_);
+    PreconditionerLaplace1D<T>                  P1(A1);
+    CompressionLaplace1D<T>                     Compr1(A1);
+    ParametersLaplace1D<T>                      parameters1(A1);
+    MappedLaplace1D<T>                          MA1(A1,P1,Compr1);
 
-    Function2D<T>                           rhsFunc(RefSol::rhs);
-    RHSIntegral2D<T>                        rhsIntegral(A.V, A.V, rhsFunc, 3);
+    SymmetricApply1D<T, MappedLaplace1D<T> >    Apply1(parameters1, MA1);
 
-    Coefficients<Lexicographical,T,Index2D> F = initRHS2D(A.V, rhsIntegral, P);
+//
+//  Setup A2
+//
+    Laplace1D<T>                                A2(d, d_);
+    PreconditionerLaplace1D<T>                  P2(A2);
+    CompressionLaplace1D<T>                     Compr2(A2);
+    ParametersLaplace1D<T>                      parameters2(A2);
+    MappedLaplace1D<T>                          MA2(A2,P2,Compr2);
 
+    SymmetricApply1D<T, MappedLaplace1D<T> >    Apply2(parameters2, MA2);
 
-    CoefficientCols<T> colsF = splitCols(F);
-    CoefficientCols<T> colsV;
-    CoefficientRows<T> rowsU;
-
-    for (auto it=colsF.begin(); it!=colsF.end(); ++it) {
-        Index1D                  col = it->first;
-        const CoefficientVec<T>  &f  = it->second;
-
-        cout << "col = " << col << endl;
-
-        colsV[col] = solveLaplace1D(P, A, f, 1e-9);
-    }
+//
+//  Setup Apply for the tensor Product  A = A1(x)A2
+//
+    typedef SymmetricApply1D<T, MappedLaplace1D<T> >        SyApply1;
+    typedef SymmetricApply1D<T, MappedLaplace1D<T> >        SyApply2;
     
-    cout << endl << endl << endl << endl << endl << endl << endl
-         << "--------------------------------------------" << endl;
+    typedef SymmetricTensorApply<T, SyApply1, SyApply2>     SyTensorApply;
 
-    CoefficientRows<T> rowsV = splitRows(colsV);
-    for (auto it=rowsV.begin(); it!=rowsV.end(); ++it) {
-        Index1D                  row = it->first;
-        const CoefficientVec<T>  &vt = it->second;
 
-        cout << "row = " << row << endl;
-        cout << "cols = " << supp(vt) << endl;
+    SyTensorApply                           Apply(Apply1, Apply2);
 
-        rowsU[row] = solveLaplace1D(P, A, vt, 1e-5);
-    }
+//
+//  Setup right hand side
+//
+    Function2D<T>                           rhsFunc(RefSol::rhs);
+    RHSIntegral2D<T>                        rhsIntegral(A1.V, A2.V, rhsFunc, 3);
 
-    Coefficients<Lexicographical,T,Index2D>  U = joinRows(rowsU);
+    // TODO: initRHS2D should also use A2.V and P2
+    Coefficients<Lexicographical,T,Index2D> F = initRHS2D(A1.V, rhsIntegral, P1);
 
-    cout << "U = " << U << endl;
+    cout << "F = " << F << endl;
+
+    Coefficients<Lexicographical,T,Index2D> V = Apply(F, 0.0001);
+
+    cout << "V = A*F = " << V << endl;
 }
 
 template <typename T>
@@ -160,39 +159,4 @@ initRHS2D(const CompoundBasis<T>                &V,
     return f;
 }
 
-
-template <typename T>
-Coefficients<Lexicographical,T,Index1D>
-solveLaplace1D(const PreconditionerLaplace1D<T>                 &P, 
-               const Laplace1D<T>                               &A,
-               const Coefficients<Lexicographical,T,Index1D>    &f,
-               T                                                eps)
-{
-    typedef SolLaplace1D<T>                     RefSol;
-    RefSol::setExample(1, T(1));
-
-    CompressionLaplace1D<T>                     Compr(A);
-    ParametersLaplace1D<T>                      parameters(A);
-    MappedLaplace1D<T>                          MA(A,P,Compr);
-
-    Rhs<T>                                      F(P, f);
-
-    SymmetricApply1D<T, MappedLaplace1D<T> >    Apply(parameters, MA);
-
-    GHS_Adwav<T>                                ghs_adwav(A.V, Apply, F);
-
-    int                                         maxNumOfIterations = 100;
-
-    cout << "ADWAV started." << endl;
-    ghs_adwav.SOLVE(f.norm(2.), eps, maxNumOfIterations, RefSol::H1norm());
-    cout << "ADWAV finished." << endl;
-
-    int numOfIterations = ghs_adwav.solutions.size();
-
-    Coefficients<Lexicographical,T,Index1D>  solution;
-
-    solution = ghs_adwav.solutions[numOfIterations-1];
-
-    return solution;
-}
 

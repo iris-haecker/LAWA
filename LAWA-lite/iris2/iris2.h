@@ -1,6 +1,7 @@
 #ifndef IRIS2_IRIS2_H
 #define IRIS2_IRIS2_H 1
 
+#include <iris2/my/coefficenttools.h>
 #include <iris2/my/compoundbasis.h>
 #include <iris2/my/compressionlaplace1d.h>
 #include <iris2/my/lambdatilde.h>
@@ -10,6 +11,7 @@
 #include <iris2/my/rhsintegral1d.h>
 #include <iris2/my/rhsintegral2d.h>
 #include <iris2/my/symmetricapply1d.h>
+#include <iris2/my/symmetrictensorapply.h>
 #include <iris2/my/staticrhs.h>
 
 #include <iris2/refsols/sollaplace1d.h>

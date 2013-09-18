@@ -30,9 +30,9 @@ StaticRHS<T,Index,Preconditioner>::operator()(const Index &lambda)
         return (*it_index).second;
     }
     
-    std::cerr << "Index not found: lambda = " << lambda << std::endl;
-    
-    assert(0);
+    //std::cerr << "Index not found: lambda = " << lambda << std::endl;
+    //assert(0);
+
     return 0;
 }
 
